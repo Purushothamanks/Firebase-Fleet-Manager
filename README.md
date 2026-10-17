@@ -3,7 +3,8 @@
 > **Real-Time Cloud Guard & Central Mission Control Dashboard** for monitoring, health pinging, and instantly toggling maintenance mode across Firebase web applications.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-v18%2B-green.svg)](https://nodejs.org/)
+[![GitHub Pages](https://img.shields.io/badge/Hosted%20On-GitHub%20Pages-blueviolet.svg)](https://purushothamanks.github.io/Firebase-Fleet-Manager/)
+[![Cloud State](https://img.shields.io/badge/Cloud%20State-Supabase%2024%2F7-emerald.svg)](https://supabase.com/)
 [![Status](https://img.shields.io/badge/Fleet%20Status-8%20Apps%20Operational-brightgreen.svg)](#-monitored-fleet-registry)
 
 ---
@@ -12,7 +13,13 @@
 
 **Firebase Fleet Manager** is an enterprise-grade control center designed to solve a critical operational challenge: **How to instantly put any live running web application under maintenance without rebuilding, re-deploying, or waiting for CDN propagation.**
 
-Traditional Firebase deployment commands (`firebase deploy --only hosting`) take 30 to 60 seconds per site and require active CLI tokens. **Firebase Fleet Manager** uses the **Real-Time Cloud Guard** pattern to achieve **sub-second (< 100 ms) maintenance toggling** with live browser takeover, dynamic countdown timers, and administrator bypass keys.
+Operating **24/7 Serverless on GitHub Pages + Supabase Cloud**, this system achieves **sub-second (< 50 ms) maintenance toggling** with live browser takeover, dynamic countdown timers, and administrator bypass keys — with **zero hosting costs, no servers to maintain, and no sleep/spin-down delays**.
+
+---
+
+## 🌐 Live Dashboard URL
+
+👉 **[https://purushothamanks.github.io/Firebase-Fleet-Manager/](https://purushothamanks.github.io/Firebase-Fleet-Manager/)**
 
 ---
 

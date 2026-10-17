@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Fleet Manager — 24/7 Cloud Guard & Monitoring</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Dashboard Stylesheet -->
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-satellite-dish"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Firebase Fleet Manager</h1>
+          <span class="subtext">24/7 Serverless Cloud Guard & Live Control Center</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <button id="btn-ping-all" class="btn btn-secondary">
+          <i class="fa-solid fa-arrows-rotate"></i> Ping Fleet
+        </button>
+        <button id="btn-guard-code" class="btn btn-secondary">
+          <i class="fa-solid fa-code"></i> Integration Snippet
+        </button>
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span>Supabase 24/7 Live</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+    <!-- Fleet Metric Cards -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon icon-blue"><i class="fa-solid fa-cubes"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Managed Applications</span>
+          <span class="metric-value" id="stat-total">8</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon icon-green"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Live Operational</span>
+          <span class="metric-value text-green" id="stat-live">8</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon icon-amber"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Under Maintenance</span>
+          <span class="metric-value text-amber" id="stat-maint">0</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon icon-purple"><i class="fa-solid fa-cloud"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Cloud Sync State</span>
+          <span class="metric-value" style="font-size: 18px; color: #34d399;" id="stat-latency">Active 24/7</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Global Emergency Controls Bar -->
+    <section class="control-banner">
+      <div class="banner-info">
+        <div class="banner-title"><i class="fa-solid fa-shield-halved"></i> Global Fleet Controls</div>
+        <div class="banner-desc">Instantly toggle maintenance mode across individual web applications or execute fleet-wide emergency actions.</div>
+      </div>
+      <div class="banner-buttons">
+        <button id="btn-bulk-maint" class="btn btn-warning">
+          <i class="fa-solid fa-screwdriver-wrench"></i> Keep ALL Under Maintenance
+        </button>
+        <button id="btn-bulk-live" class="btn btn-success">
+          <i class="fa-solid fa-circle-play"></i> Restore ALL to Live
+        </button>
+      </div>
+    </section>
+
+    <!-- Fleet Grid -->
+    <section class="fleet-section">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Monitored Web Applications</h2>
+          <span class="badge" id="fleet-count-badge">8 Projects</span>
+        </div>
+        <div class="filter-controls">
+          <button class="filter-btn active" data-filter="all">All (8)</button>
+          <button class="filter-btn" data-filter="live">Live (<span id="filter-live-count">8</span>)</button>
+          <button class="filter-btn" data-filter="maintenance">Maintenance (<span id="filter-maint-count">0</span>)</button>
+        </div>
+      </div>
+
+      <div class="fleet-grid" id="fleet-grid">
+        <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #94a3b8;">
+          <i class="fa-solid fa-spinner fa-spin"></i> Connecting to 24/7 Supabase Cloud Registry...
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity & Audit Log -->
+    <section class="logs-section">
+      <div class="section-header">
+        <div class="section-title">
+          <h2><i class="fa-solid fa-clock-rotate-left"></i> Real-Time Audit Log</h2>
+          <span class="subtext">Timestamped log of status changes and maintenance events</span>
+        </div>
+        <button id="btn-refresh-logs" class="btn btn-sm btn-secondary">
+          <i class="fa-solid fa-arrows-rotate"></i> Refresh Logs
+        </button>
+      </div>
+      <div class="logs-container" id="logs-container">
+        <!-- Populated dynamically -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Edit Notice Modal -->
+  <div class="modal-backdrop" id="edit-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-site-title">Edit Maintenance Notice</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <form id="edit-notice-form">
+        <input type="hidden" id="modal-site-id">
+        <div class="form-group">
+          <label>Announcement Headline</label>
+          <input type="text" id="modal-input-title" required placeholder="e.g. Scheduled Maintenance">
+        </div>
+        <div class="form-group">
+          <label>Maintenance Message to Public Visitors</label>
+          <textarea id="modal-input-msg" rows="4" required placeholder="Describe reason for downtime..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Estimated Return Time (Optional)</label>
+            <input type="text" id="modal-input-return" placeholder="e.g. In 30 minutes, or 11:30 PM UTC">
+          </div>
+          <div class="form-group">
+            <label>Admin Bypass Secret Key</label>
+            <input type="text" id="modal-input-bypass" required placeholder="Secret passphrase">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="modal-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save to Cloud</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Snippet Modal -->
+  <div class="modal-backdrop" id="snippet-modal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-code"></i> Universal Client Guard Snippet</h3>
+        <button class="modal-close" id="snippet-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" style="color: #94a3b8; font-size: 13px; margin-bottom: 14px;">
+          Add this script tag into the <code>&lt;head&gt;</code> of your application's <code>index.html</code> (or <code>layout.tsx</code>). It connects directly to your 24/7 Cloud State store with zero server dependencies:
+        </p>
+        <div class="code-block">
+          <pre id="snippet-code-text">&lt;!-- Firebase Fleet Cloud Guard (24/7 Serverless) --&gt;
+&lt;script 
+  src="https://purushothamanks.github.io/Firebase-Fleet-Manager/guard.js" 
+  data-site-id="aio-universe" 
+  data-check-interval="3000"&gt;
+&lt;/script&gt;</pre>
+          <button class="btn btn-sm btn-secondary copy-btn" id="btn-copy-snippet">
+            <i class="fa-solid fa-copy"></i> Copy Snippet
+          </button>
+        </div>
+        <h4 style="margin: 20px 0 10px; color: #f8fafc; font-size: 14px;">Registered Project Identifiers:</h4>
+        <div class="tag-list">
+          <code>aio-universe</code>
+          <code>department-rpsit</code>
+          <code>ecofinancies</code>
+          <code>easy-kart-d6d3a</code>
+          <code>lafsai</code>
+          <code>task-teamtracker</code>
+          <code>webmarketz</code>
+          <code>mygovthub</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Controller -->
+  <script src="js/app.js"></script>
+</body>
+</html>

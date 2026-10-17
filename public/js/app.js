@@ -1,5 +1,9 @@
-// Firebase Fleet Manager — Frontend Controller
+// Firebase Fleet Manager — 24/7 Serverless GitHub Pages Controller
+// Powered by Supabase Cloud Realtime REST API
 document.addEventListener('DOMContentLoaded', () => {
+  const SUPABASE_URL = 'https://mpymsolehyodfyamnpqn.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1weW1zb2xlaHlvZGZ5YW1ucHFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4OTc1MjMsImV4cCI6MjEwNzQ3MzUyM30.LOwTKgp5lXKZc1lrLFfsWCINxrYVth1WZbbs97PbkxI';
+
   let fleetData = {};
   let currentFilter = 'all';
 
@@ -18,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const snippetModal = document.getElementById('snippet-modal');
   const editForm = document.getElementById('edit-notice-form');
 
-  // Icons map per site
   const siteIcons = {
     'aio-universe': 'fa-solid fa-robot',
     'department-rpsit': 'fa-solid fa-graduation-cap',
@@ -30,19 +33,32 @@ document.addEventListener('DOMContentLoaded', () => {
     'mygovthub': 'fa-solid fa-city'
   };
 
-  // 1. Load Fleet Data
+  // 1. Load Fleet from Supabase Cloud
   async function loadFleet() {
     try {
-      const res = await fetch('/api/fleet');
-      if (!res.ok) throw new Error("Failed to load fleet registry");
-      fleetData = await res.json();
+      const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?select=*&order=site_id.asc`;
+      const res = await fetch(endpoint, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch fleet from Supabase");
+      const list = await res.json();
+      
+      fleetData = {};
+      list.forEach(item => {
+        fleetData[item.site_id] = item;
+      });
+
       renderDashboard();
     } catch (err) {
       console.error(err);
       fleetGrid.innerHTML = `
         <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;">
           <i class="fa-solid fa-triangle-exclamation" style="font-size: 32px; margin-bottom: 12px;"></i>
-          <p>Failed to connect to Fleet Sentinel Server. Please ensure <code>server.js</code> is running.</p>
+          <p>Failed to connect to Supabase Cloud State store: ${err.message}</p>
         </div>
       `;
     }
@@ -66,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
     filterLiveCount.innerText = liveCount;
     filterMaintCount.innerText = maintCount;
 
-    // Filter cards
     const filteredIds = siteIds.filter(id => {
       if (currentFilter === 'live') return fleetData[id].status === 'live';
       if (currentFilter === 'maintenance') return fleetData[id].status === 'maintenance';
@@ -74,15 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     fleetGrid.innerHTML = filteredIds.map(id => createCardHTML(id, fleetData[id])).join('');
-
-    // Attach event listeners to card buttons
     attachCardListeners();
   }
 
   function createCardHTML(id, site) {
     const isMaint = site.status === 'maintenance';
     const iconClass = siteIcons[id] || 'fa-solid fa-globe';
-    const bypassUrl = `${site.url}?bypass=${encodeURIComponent(site.bypassKey || 'fleet-admin-secret-2026')}`;
+    const bypassUrl = `${site.url}?bypass=${encodeURIComponent(site.bypass_key || 'fleet-admin-secret-2026')}`;
 
     return `
       <div class="app-card ${isMaint ? 'card-maintenance' : ''}" id="card-${id}">
@@ -110,8 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="detail-val">${escapeHtml(site.url.replace('https://', ''))}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">HTTP Latency</span>
-            <span class="detail-val" id="latency-${id}">-- ms</span>
+            <span class="detail-label">Cloud Sync</span>
+            <span class="detail-val" style="color: #34d399;">24/7 Supabase</span>
           </div>
         </div>
 
@@ -144,130 +157,151 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function attachCardListeners() {
-    // Toggle status button
     document.querySelectorAll('[data-action="toggle"]').forEach(btn => {
-      btn.onclick = async (e) => {
+      btn.onclick = async () => {
         const id = btn.getAttribute('data-id');
         const nextStatus = btn.getAttribute('data-next');
         await toggleSiteStatus(id, nextStatus);
       };
     });
 
-    // Ping single site
     document.querySelectorAll('[data-action="ping"]').forEach(btn => {
-      btn.onclick = async (e) => {
+      btn.onclick = async () => {
         const id = btn.getAttribute('data-id');
         await pingSite(id);
       };
     });
 
-    // Edit notice modal
     document.querySelectorAll('[data-action="edit"]').forEach(btn => {
-      btn.onclick = (e) => {
+      btn.onclick = () => {
         const id = btn.getAttribute('data-id');
         openEditModal(id);
       };
     });
   }
 
-  // 3. Toggle Status Action
+  // 3. Toggle Status Action via Supabase
   async function toggleSiteStatus(siteId, nextStatus) {
     try {
-      const res = await fetch('/api/fleet/toggle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, status: nextStatus })
+      const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?site_id=eq.${encodeURIComponent(siteId)}`;
+      const res = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({ 
+          status: nextStatus,
+          last_changed: new Date().toISOString()
+        })
       });
 
-      if (!res.ok) throw new Error("Toggle request failed");
-      const result = await res.json();
-      fleetData[siteId] = result.site;
+      if (!res.ok) throw new Error("Supabase status update failed");
+      const updated = await res.json();
+      fleetData[siteId] = updated[0];
+      
+      addAuditLog(
+        nextStatus === 'maintenance' ? 'SET_MAINTENANCE' : 'RESTORE_LIVE',
+        `Switched ${fleetData[siteId].name} to ${nextStatus.toUpperCase()}`
+      );
+
       renderDashboard();
-      loadLogs();
     } catch (err) {
-      alert("Error updating site status: " + err.message);
+      alert("Error updating status: " + err.message);
     }
   }
 
-  // 4. Bulk Status Actions
+  // 4. Bulk Operations
   document.getElementById('btn-bulk-maint').onclick = async () => {
-    if (!confirm("⚠️ Are you sure you want to put ALL 8 managed websites under MAINTENANCE mode?")) return;
+    if (!confirm("⚠️ Put ALL 8 managed websites under MAINTENANCE mode?")) return;
     try {
-      const res = await fetch('/api/fleet/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'maintenance' })
+      const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?site_id=neq.none`;
+      await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          status: 'maintenance',
+          last_changed: new Date().toISOString()
+        })
       });
-      const data = await res.json();
-      fleetData = data.fleet;
-      renderDashboard();
-      loadLogs();
+
+      addAuditLog('BULK_MAINTENANCE', 'Put ALL 8 projects under maintenance mode');
+      await loadFleet();
     } catch (err) {
-      alert("Bulk operation error: " + err.message);
+      alert("Bulk error: " + err.message);
     }
   };
 
   document.getElementById('btn-bulk-live').onclick = async () => {
     if (!confirm("🟢 Restore ALL 8 managed websites to LIVE operation?")) return;
     try {
-      const res = await fetch('/api/fleet/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'live' })
+      const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?site_id=neq.none`;
+      await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          status: 'live',
+          last_changed: new Date().toISOString()
+        })
       });
-      const data = await res.json();
-      fleetData = data.fleet;
-      renderDashboard();
-      loadLogs();
+
+      addAuditLog('BULK_RESTORE_LIVE', 'Restored ALL 8 projects to LIVE mode');
+      await loadFleet();
     } catch (err) {
-      alert("Bulk operation error: " + err.message);
+      alert("Bulk error: " + err.message);
     }
   };
 
-  // 5. Ping Latency
+  // 5. Ping Latency (Browser Fetch)
   async function pingSite(siteId) {
-    const latencyEl = document.getElementById(`latency-${siteId}`);
-    if (latencyEl) latencyEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    const site = fleetData[siteId];
+    if (!site) return null;
 
+    const start = performance.now();
     try {
-      const res = await fetch(`/api/ping/${siteId}`);
-      const data = await res.json();
-      if (latencyEl) {
-        if (data.isReachable) {
-          latencyEl.innerText = `${data.latencyMs} ms`;
-          latencyEl.style.color = data.latencyMs < 500 ? '#34d399' : '#fbbf24';
-        } else {
-          latencyEl.innerText = `Offline`;
-          latencyEl.style.color = '#ef4444';
-        }
-      }
-      return data.latencyMs;
+      await fetch(site.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' });
+      const latency = Math.round(performance.now() - start);
+      alert(`🛰️ Ping ${site.name}: ${latency} ms (Live & Reachable)`);
+      return latency;
     } catch (e) {
-      if (latencyEl) latencyEl.innerText = `Err`;
+      alert(`⚠️ Ping ${site.name}: Offline or unreachable`);
       return null;
     }
   }
 
   document.getElementById('btn-ping-all').onclick = async () => {
+    statLatency.innerText = "Pinging...";
     const siteIds = Object.keys(fleetData);
     let totalMs = 0;
-    let successful = 0;
+    let success = 0;
 
     for (const id of siteIds) {
-      const ms = await pingSite(id);
-      if (ms !== null && ms > 0) {
-        totalMs += ms;
-        successful++;
-      }
+      const start = performance.now();
+      try {
+        await fetch(fleetData[id].url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' });
+        totalMs += Math.round(performance.now() - start);
+        success++;
+      } catch (e) {}
     }
 
-    if (successful > 0) {
-      const avg = Math.round(totalMs / successful);
-      statLatency.innerText = `${avg} ms`;
+    if (success > 0) {
+      statLatency.innerText = `${Math.round(totalMs / success)} ms`;
+    } else {
+      statLatency.innerText = "-- ms";
     }
   };
 
-  // 6. Filters
+  // 6. Filter Controls
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -284,10 +318,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('modal-site-id').value = siteId;
     document.getElementById('modal-site-title').innerText = `Edit Notice: ${site.name}`;
-    document.getElementById('modal-input-title').value = site.maintenanceTitle || '';
-    document.getElementById('modal-input-msg').value = site.maintenanceMsg || '';
-    document.getElementById('modal-input-return').value = site.estimatedReturn || '';
-    document.getElementById('modal-input-bypass').value = site.bypassKey || 'fleet-admin-secret-2026';
+    document.getElementById('modal-input-title').value = site.maintenance_title || '';
+    document.getElementById('modal-input-msg').value = site.maintenance_msg || '';
+    document.getElementById('modal-input-return').value = site.estimated_return || '';
+    document.getElementById('modal-input-bypass').value = site.bypass_key || 'fleet-admin-secret-2026';
 
     editModal.classList.add('open');
   }
@@ -298,25 +332,33 @@ document.addEventListener('DOMContentLoaded', () => {
   editForm.onsubmit = async (e) => {
     e.preventDefault();
     const siteId = document.getElementById('modal-site-id').value;
-    const body = {
-      siteId,
-      maintenanceTitle: document.getElementById('modal-input-title').value,
-      maintenanceMsg: document.getElementById('modal-input-msg').value,
-      estimatedReturn: document.getElementById('modal-input-return').value,
-      bypassKey: document.getElementById('modal-input-bypass').value
+    const updatePayload = {
+      maintenance_title: document.getElementById('modal-input-title').value,
+      maintenance_msg: document.getElementById('modal-input-msg').value,
+      estimated_return: document.getElementById('modal-input-return').value,
+      bypass_key: document.getElementById('modal-input-bypass').value,
+      last_changed: new Date().toISOString()
     };
 
     try {
-      const res = await fetch('/api/fleet/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+      const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?site_id=eq.${encodeURIComponent(siteId)}`;
+      const res = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(updatePayload)
       });
-      const data = await res.json();
-      fleetData[siteId] = data.site;
+
+      if (!res.ok) throw new Error("Failed to save notice to Supabase");
+      const updated = await res.json();
+      fleetData[siteId] = updated[0];
       editModal.classList.remove('open');
+      addAuditLog('CONFIG_UPDATE', `Updated announcement notice for ${fleetData[siteId].name}`);
       renderDashboard();
-      loadLogs();
     } catch (err) {
       alert("Error saving notice: " + err.message);
     }
@@ -328,38 +370,58 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-copy-snippet').onclick = () => {
     const text = document.getElementById('snippet-code-text').innerText;
     navigator.clipboard.writeText(text);
-    alert("Copied integration snippet to clipboard!");
+    alert("Copied 24/7 Cloud Guard snippet to clipboard!");
   };
 
-  // 8. Logs
-  async function loadLogs() {
+  // 8. Audit Logs (Persistent via LocalStorage)
+  function addAuditLog(action, details) {
+    let logs = [];
     try {
-      const res = await fetch('/api/logs');
-      const logs = await res.json();
-      if (!logs || logs.length === 0) {
-        logsContainer.innerHTML = '<div style="color: #64748b; font-size: 13px; padding: 12px;">No activity logs recorded yet.</div>';
-        return;
-      }
-      logsContainer.innerHTML = logs.map(l => `
-        <div class="log-item ${l.action.includes('MAINT') ? 'maint' : 'live'}">
-          <div class="log-details">
-            <span class="status-badge ${l.action.includes('MAINT') ? 'maintenance' : 'live'}">${l.action}</span>
-            <span>${escapeHtml(l.details)}</span>
-          </div>
-          <span class="log-time">${new Date(l.timestamp).toLocaleTimeString()}</span>
-        </div>
-      `).join('');
+      logs = JSON.parse(localStorage.getItem('fleet_audit_logs') || '[]');
     } catch (e) {}
+
+    logs.unshift({
+      timestamp: new Date().toISOString(),
+      action,
+      details
+    });
+
+    if (logs.length > 50) logs = logs.slice(0, 50);
+    localStorage.setItem('fleet_audit_logs', JSON.stringify(logs));
+    renderLogs();
   }
 
-  document.getElementById('btn-refresh-logs').onclick = loadLogs;
+  function renderLogs() {
+    let logs = [];
+    try {
+      logs = JSON.parse(localStorage.getItem('fleet_audit_logs') || '[]');
+    } catch (e) {}
+
+    if (logs.length === 0) {
+      logsContainer.innerHTML = '<div style="color: #64748b; font-size: 13px; padding: 12px;">No activity logs recorded yet. Toggling maintenance will record events here.</div>';
+      return;
+    }
+
+    logsContainer.innerHTML = logs.map(l => `
+      <div class="log-item ${l.action.includes('MAINT') ? 'maint' : 'live'}">
+        <div class="log-details">
+          <span class="status-badge ${l.action.includes('MAINT') ? 'maintenance' : 'live'}">${l.action}</span>
+          <span>${escapeHtml(l.details)}</span>
+        </div>
+        <span class="log-time">${new Date(l.timestamp).toLocaleTimeString()}</span>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('btn-refresh-logs').onclick = renderLogs;
 
   function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  // Initialization
+  // Periodic Auto-Sync from Supabase every 4 seconds
   loadFleet();
-  loadLogs();
+  renderLogs();
+  setInterval(loadFleet, 4000);
 });

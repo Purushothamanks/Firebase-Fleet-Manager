@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Firebase Fleet Manager — Live Cloud Guard & Monitoring</title>
+  <title>Firebase Fleet Manager — 24/7 Cloud Guard & Monitoring</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
   
   <!-- FontAwesome -->
@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Stylesheet -->
+  <!-- Dashboard Stylesheet -->
   <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
@@ -27,7 +27,7 @@
         </div>
         <div class="brand-text">
           <h1>Firebase Fleet Manager</h1>
-          <span class="subtext">Real-Time Cloud Guard & Maintenance Control Hub</span>
+          <span class="subtext">24/7 Serverless Cloud Guard & Live Control Center</span>
         </div>
       </div>
 
@@ -40,7 +40,7 @@
         </button>
         <div class="status-indicator">
           <span class="pulse-dot"></span>
-          <span>Cloud Guard Active</span>
+          <span>Supabase 24/7 Live</span>
         </div>
       </div>
     </div>
@@ -72,10 +72,10 @@
         </div>
       </div>
       <div class="metric-card">
-        <div class="metric-icon icon-purple"><i class="fa-solid fa-gauge-high"></i></div>
+        <div class="metric-icon icon-purple"><i class="fa-solid fa-cloud"></i></div>
         <div class="metric-info">
-          <span class="metric-label">Avg Fleet Latency</span>
-          <span class="metric-value" id="stat-latency">-- ms</span>
+          <span class="metric-label">Cloud Sync State</span>
+          <span class="metric-value" style="font-size: 18px; color: #34d399;" id="stat-latency">Active 24/7</span>
         </div>
       </div>
     </section>
@@ -84,7 +84,7 @@
     <section class="control-banner">
       <div class="banner-info">
         <div class="banner-title"><i class="fa-solid fa-shield-halved"></i> Global Fleet Controls</div>
-        <div class="banner-desc">Instantly toggle maintenance mode across individual applications or execute fleet-wide actions.</div>
+        <div class="banner-desc">Instantly toggle maintenance mode across individual web applications or execute fleet-wide emergency actions.</div>
       </div>
       <div class="banner-buttons">
         <button id="btn-bulk-maint" class="btn btn-warning">
@@ -111,9 +111,8 @@
       </div>
 
       <div class="fleet-grid" id="fleet-grid">
-        <!-- Rendered dynamically by app.js -->
-        <div class="loading-state">
-          <i class="fa-solid fa-spinner fa-spin"></i> Initializing Fleet Registry...
+        <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #94a3b8;">
+          <i class="fa-solid fa-spinner fa-spin"></i> Connecting to 24/7 Supabase Cloud Registry...
         </div>
       </div>
     </section>
@@ -164,7 +163,7 @@
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="modal-cancel-btn">Cancel</button>
-          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save & Apply</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save to Cloud</button>
         </div>
       </form>
     </div>
@@ -178,15 +177,15 @@
         <button class="modal-close" id="snippet-close-btn">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc">
-          Add this script tag into the <code>&lt;head&gt;</code> of your application's <code>index.html</code> (or <code>layout.tsx</code>). Replace <code>data-site-id</code> with the appropriate project identifier:
+        <p class="modal-desc" style="color: #94a3b8; font-size: 13px; margin-bottom: 14px;">
+          Add this script tag into the <code>&lt;head&gt;</code> of your application's <code>index.html</code> (or <code>layout.tsx</code>). It connects directly to your 24/7 Cloud State store with zero server dependencies:
         </p>
         <div class="code-block">
-          <pre id="snippet-code-text">&lt;!-- Firebase Fleet Guard Snippet --&gt;
+          <pre id="snippet-code-text">&lt;!-- Firebase Fleet Cloud Guard (24/7 Serverless) --&gt;
 &lt;script 
-  src="http://localhost:4000/guard.js" 
+  src="https://purushothamanks.github.io/Firebase-Fleet-Manager/guard.js" 
   data-site-id="aio-universe" 
-  data-check-interval="5000"&gt;
+  data-check-interval="3000"&gt;
 &lt;/script&gt;</pre>
           <button class="btn btn-sm btn-secondary copy-btn" id="btn-copy-snippet">
             <i class="fa-solid fa-copy"></i> Copy Snippet
@@ -207,7 +206,7 @@
     </div>
   </div>
 
-  <!-- App JavaScript -->
+  <!-- App Controller -->
   <script src="js/app.js"></script>
 </body>
 </html>

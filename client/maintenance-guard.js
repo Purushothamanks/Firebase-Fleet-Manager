@@ -1,20 +1,22 @@
 /**
- * Firebase Fleet Manager — Universal Client-Side Real-Time Guard
+ * Firebase Fleet Manager — 24/7 Universal Client Guard
+ * Powered by Supabase Cloud Realtime State
  * 
- * Embed this single script into any web application to enable instant, sub-second
- * maintenance mode toggling from your Firebase Fleet Manager dashboard.
+ * Embed this script into any web project for instant, sub-second maintenance mode toggles.
  * 
  * Usage:
- * <script src="https://your-fleet-server.com/guard.js" data-site-id="your-site-id"></script>
+ * <script 
+ *   src="https://purushothamanks.github.io/Firebase-Fleet-Manager/guard.js" 
+ *   data-site-id="aio-universe" 
+ *   data-check-interval="3000">
+ * </script>
  */
 (function () {
   'use strict';
 
-  // Prevent multiple initializations
   if (window.__FLEET_GUARD_INITIALIZED__) return;
   window.__FLEET_GUARD_INITIALIZED__ = true;
 
-  // Locate the current script tag
   const script = document.currentScript || (function () {
     const scripts = document.getElementsByTagName('script');
     for (let i = scripts.length - 1; i >= 0; i--) {
@@ -25,47 +27,44 @@
     return null;
   })();
 
-  // Configuration options
   const siteId = script?.getAttribute('data-site-id') || window.FLEET_SITE_ID || 'aio-universe';
-  const apiBase = script?.getAttribute('data-api-url') || (function () {
-    if (script && script.src) {
-      try {
-        const u = new URL(script.src);
-        return `${u.protocol}//${u.host}`;
-      } catch (e) {}
-    }
-    return window.FLEET_API_URL || 'http://localhost:4000';
-  })();
-
-  const pollInterval = parseInt(script?.getAttribute('data-check-interval') || '5000', 10);
+  const pollInterval = parseInt(script?.getAttribute('data-check-interval') || '3000', 10);
   const bypassParamName = script?.getAttribute('data-bypass-param') || 'bypass';
+
+  // Supabase 24/7 Cloud Configuration
+  const SUPABASE_URL = script?.getAttribute('data-supabase-url') || window.FLEET_SUPABASE_URL || 'https://mpymsolehyodfyamnpqn.supabase.co';
+  const SUPABASE_KEY = script?.getAttribute('data-supabase-key') || window.FLEET_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1weW1zb2xlaHlvZGZ5YW1ucHFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4OTc1MjMsImV4cCI6MjEwNzQ3MzUyM30.LOwTKgp5lXKZc1lrLFfsWCINxrYVth1WZbbs97PbkxI';
 
   // Check URL query parameters for bypass key
   try {
     const params = new URLSearchParams(window.location.search);
     const keyFromUrl = params.get(bypassParamName);
     if (keyFromUrl) {
-      sessionStorage.setItem('fleet_bypass_token', keyFromUrl);
+      sessionStorage.setItem('fleet_bypass_token', keyFromUrl.trim());
     }
   } catch (e) {}
 
   let isOverlayActive = false;
 
-  // Primary status evaluation
   async function evaluateStatus() {
     try {
-      const endpoint = `${apiBase.replace(/\/+$/, '')}/api/status/${encodeURIComponent(siteId)}?_t=${Date.now()}`;
+      const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?site_id=eq.${encodeURIComponent(siteId)}&select=*`;
       const response = await fetch(endpoint, {
         method: 'GET',
-        cache: 'no-store',
-        headers: { 'Accept': 'application/json' }
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Accept': 'application/json'
+        }
       });
 
-      if (!response.ok) return; // Fail-open on API errors
-      const data = await response.json();
+      if (!response.ok) return;
+      const records = await response.json();
+      if (!records || records.length === 0) return;
 
+      const data = records[0];
       const storedBypass = sessionStorage.getItem('fleet_bypass_token');
-      const isBypassed = storedBypass && data.bypassKey && storedBypass === data.bypassKey;
+      const isBypassed = storedBypass && data.bypass_key && storedBypass === data.bypass_key;
 
       if (data.status === 'maintenance' && !isBypassed) {
         renderMaintenanceOverlay(data);
@@ -73,23 +72,21 @@
         removeMaintenanceOverlay();
       }
     } catch (err) {
-      // Network failure: fail-open so visitors are not blocked if monitoring server is unreachable
+      // Fail-open so visitors are not blocked if network drops
     }
   }
 
   function renderMaintenanceOverlay(data) {
     if (isOverlayActive) {
-      // Update text in case message changed dynamically
       const msgEl = document.getElementById('fleet-guard-msg');
-      if (msgEl && data.maintenanceMsg) msgEl.innerText = data.maintenanceMsg;
+      if (msgEl && data.maintenance_msg) msgEl.innerText = data.maintenance_msg;
       const titleEl = document.getElementById('fleet-guard-title');
-      if (titleEl && data.maintenanceTitle) titleEl.innerText = data.maintenanceTitle;
+      if (titleEl && data.maintenance_title) titleEl.innerText = data.maintenance_title;
       return;
     }
 
     isOverlayActive = true;
 
-    // Inject styles
     if (!document.getElementById('fleet-guard-styles')) {
       const style = document.createElement('style');
       style.id = 'fleet-guard-styles';
@@ -110,14 +107,14 @@
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
           color: #f8fafc !important;
           padding: 24px !important;
           box-sizing: border-box !important;
           animation: fleetFadeIn 0.35s ease-out forwards;
         }
         .fleet-card {
-          max-width: 540px;
+          max-width: 520px;
           width: 100%;
           background: #0f172a;
           border: 1px solid rgba(255, 255, 255, 0.12);
@@ -125,7 +122,6 @@
           padding: 44px 36px;
           text-align: center;
           box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px rgba(245, 158, 11, 0.15);
-          position: relative;
         }
         .fleet-badge {
           display: inline-flex;
@@ -182,11 +178,8 @@
           color: #64748b;
           text-decoration: none;
           cursor: pointer;
-          transition: color 0.2s;
         }
-        .fleet-footer-link:hover {
-          color: #cbd5e1;
-        }
+        .fleet-footer-link:hover { color: #cbd5e1; }
       `;
       document.head.appendChild(style);
     }
@@ -200,8 +193,8 @@
           Scheduled Maintenance
         </div>
         <div class="fleet-icon">🚧</div>
-        <h2 id="fleet-guard-title" class="fleet-title">${escapeHtml(data.maintenanceTitle || 'Under Scheduled Maintenance')}</h2>
-        <p id="fleet-guard-msg" class="fleet-msg">${escapeHtml(data.maintenanceMsg || 'We are currently performing routine infrastructure upgrades. Normal service will resume shortly.')}</p>
+        <h2 id="fleet-guard-title" class="fleet-title">${escapeHtml(data.maintenance_title || 'Under Scheduled Maintenance')}</h2>
+        <p id="fleet-guard-msg" class="fleet-msg">${escapeHtml(data.maintenance_msg || 'We are currently performing routine upgrades. Service will resume shortly.')}</p>
         
         <div class="fleet-footer">
           <span style="color: #475569;">Fleet Sentinel Guard</span>
@@ -212,7 +205,6 @@
 
     document.body.appendChild(overlay);
 
-    // Setup Unlock Modal Trigger
     const bypassBtn = document.getElementById('fleet-bypass-action');
     if (bypassBtn) {
       bypassBtn.addEventListener('click', function (e) {
@@ -241,20 +233,14 @@
 
   function escapeHtml(str) {
     if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  // Initial trigger once DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', evaluateStatus);
   } else {
     evaluateStatus();
   }
 
-  // Periodic heartbeat poll
   setInterval(evaluateStatus, pollInterval);
 })();
