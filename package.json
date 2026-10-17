@@ -1,0 +1,26 @@
+{
+  "name": "firebase-fleet-manager",
+  "version": "1.0.0",
+  "description": "Real-Time Cloud Guard & Central Mission Control Dashboard for monitoring and instantly toggling maintenance mode across Firebase web applications.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "ping": "node scripts/ping-fleet.js"
+  },
+  "keywords": [
+    "firebase",
+    "hosting",
+    "maintenance-mode",
+    "realtime",
+    "cloud-guard",
+    "fleet-management",
+    "uptime-monitor"
+  ],
+  "author": "K S Purushothaman <purushothamanks1711@gmail.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
