@@ -38,9 +38,9 @@
   // Check URL query parameters for bypass key
   try {
     const params = new URLSearchParams(window.location.search);
-    const keyFromUrl = params.get(bypassParamName);
-    if (keyFromUrl) {
-      sessionStorage.setItem('fleet_bypass_token', keyFromUrl.trim());
+    const bypassVal = params.get(bypassParamName);
+    if (bypassVal) {
+      sessionStorage.setItem('fleet_bypass_token', bypassVal.trim());
     }
   } catch (e) {}
 
@@ -87,99 +87,95 @@
 
     isOverlayActive = true;
 
+    // Load Inter Font if not already present
+    if (!document.getElementById('fleet-inter-font')) {
+      const fontLink = document.createElement('link');
+      fontLink.id = 'fleet-inter-font';
+      fontLink.rel = 'stylesheet';
+      fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+      document.head.appendChild(fontLink);
+    }
+
     if (!document.getElementById('fleet-guard-styles')) {
       const style = document.createElement('style');
       style.id = 'fleet-guard-styles';
       style.textContent = `
-        @keyframes fleetPulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.08); opacity: 0.85; }
-        }
         @keyframes fleetFadeIn {
-          from { opacity: 0; backdrop-filter: blur(0px); }
-          to { opacity: 1; backdrop-filter: blur(20px); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         #fleet-maintenance-root {
           position: fixed !important;
           inset: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
           z-index: 2147483647 !important;
-          background: rgba(7, 10, 19, 0.96) !important;
+          background-color: #ffffff !important;
           display: flex !important;
+          flex-direction: column !important;
           align-items: center !important;
           justify-content: center !important;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-          color: #f8fafc !important;
           padding: 24px !important;
           box-sizing: border-box !important;
-          animation: fleetFadeIn 0.35s ease-out forwards;
+          margin: 0 !important;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+          color: #1f2937 !important;
+          overflow: auto !important;
+          animation: fleetFadeIn 0.25s ease-out forwards;
         }
-        .fleet-card {
-          max-width: 520px;
-          width: 100%;
-          background: #0f172a;
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 24px;
-          padding: 44px 36px;
-          text-align: center;
-          box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 40px rgba(245, 158, 11, 0.15);
+        #fleet-maintenance-root * {
+          box-sizing: border-box !important;
         }
-        .fleet-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(245, 158, 11, 0.12);
-          border: 1px solid rgba(245, 158, 11, 0.35);
-          color: #fbbf24;
-          font-size: 13px;
-          font-weight: 600;
-          padding: 6px 16px;
-          border-radius: 9999px;
-          margin-bottom: 24px;
-          letter-spacing: 0.03em;
-          text-transform: uppercase;
+        .fleet-maint-wrapper {
+          width: 100% !important;
+          max-width: 32rem !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          text-align: center !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
         }
-        .fleet-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #f59e0b;
-          box-shadow: 0 0 10px #f59e0b;
-          animation: fleetPulse 2s infinite ease-in-out;
+        .fleet-illustration-box {
+          width: 100% !important;
+          max-width: 380px !important;
+          margin-bottom: 2rem !important;
         }
-        .fleet-icon {
-          font-size: 54px;
-          line-height: 1;
-          margin-bottom: 20px;
-          display: inline-block;
-          animation: fleetPulse 3s infinite ease-in-out;
+        .fleet-illustration-svg {
+          width: 100% !important;
+          height: auto !important;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05)) !important;
         }
-        .fleet-title {
-          font-size: 26px;
-          font-weight: 800;
-          color: #ffffff;
-          margin: 0 0 14px 0;
-          letter-spacing: -0.02em;
+        .fleet-maint-title {
+          font-size: clamp(1.5rem, 3.5vw, 1.875rem) !important;
+          font-weight: 700 !important;
+          color: #111827 !important;
+          letter-spacing: -0.025em !important;
+          margin: 0 0 0.75rem 0 !important;
+          line-height: 1.25 !important;
+          text-align: center !important;
         }
-        .fleet-msg {
-          font-size: 15px;
-          line-height: 1.65;
-          color: #94a3b8;
-          margin: 0 0 28px 0;
+        .fleet-maint-desc {
+          color: #6b7280 !important;
+          font-size: clamp(0.875rem, 2vw, 1rem) !important;
+          line-height: 1.625 !important;
+          max-width: 28rem !important;
+          margin: 0 auto !important;
+          text-align: center !important;
         }
-        .fleet-footer {
-          border-top: 1px solid rgba(255, 255, 255, 0.08);
-          padding-top: 22px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          font-size: 13px;
+        .fleet-maint-bypass {
+          margin-top: 2rem !important;
         }
-        .fleet-footer-link {
-          color: #64748b;
-          text-decoration: none;
-          cursor: pointer;
+        .fleet-maint-bypass-link {
+          font-size: 11px !important;
+          color: #9ca3af !important;
+          text-decoration: none !important;
+          cursor: pointer !important;
+          transition: color 0.15s ease !important;
         }
-        .fleet-footer-link:hover { color: #cbd5e1; }
+        .fleet-maint-bypass-link:hover {
+          color: #4b5563 !important;
+        }
       `;
       document.head.appendChild(style);
     }
@@ -187,18 +183,78 @@
     const overlay = document.createElement('div');
     overlay.id = 'fleet-maintenance-root';
     overlay.innerHTML = `
-      <div class="fleet-card">
-        <div class="fleet-badge">
-          <span class="fleet-dot"></span>
-          Scheduled Maintenance
+      <div class="fleet-maint-wrapper">
+        <!-- Custom Vector Illustration Matching the Reference Image -->
+        <div class="fleet-illustration-box">
+          <svg viewBox="0 0 450 320" fill="none" xmlns="http://www.w3.org/2000/svg" class="fleet-illustration-svg">
+            <!-- Ground Line -->
+            <path d="M40 290H410" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            
+            <!-- Scaffolding Support Structure -->
+            <g id="scaffolding">
+              <!-- Platform Top -->
+              <rect x="120" y="235" width="210" height="8" rx="2" fill="#6b7280"/>
+              <rect x="135" y="140" width="180" height="95" fill="#f3f4f6" stroke="#9ca3af" stroke-width="3"/>
+              
+              <!-- Grid Layout inside the screen mockup -->
+              <rect x="150" y="160" width="45" height="18" rx="2" fill="#2563eb"/>
+              <rect x="205" y="160" width="30" height="18" rx="2" fill="#e5e7eb"/>
+              <rect x="245" y="160" width="30" height="18" rx="2" fill="#e5e7eb"/>
+              <rect x="285" y="160" width="15" height="18" rx="2" fill="#e5e7eb"/>
+
+              <rect x="150" y="188" width="55" height="8" rx="1" fill="#d1d5db"/>
+              <rect x="150" y="202" width="40" height="8" rx="1" fill="#d1d5db"/>
+
+              <rect x="205" y="188" width="30" height="22" rx="2" fill="#e5e7eb"/>
+              <rect x="245" y="188" width="30" height="22" rx="2" fill="#e5e7eb"/>
+              <rect x="285" y="188" width="15" height="22" rx="2" fill="#f97316"/> <!-- Active block -->
+
+              <!-- Scaffolding Cross Beams -->
+              <path d="M140 243V286" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+              <path d="M300 243V286" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+              <path d="M142 245L298 285" stroke="#d1d5db" stroke-width="3"/>
+              <path d="M298 245L142 285" stroke="#d1d5db" stroke-width="3"/>
+              <rect x="130" y="282" width="160" height="4" fill="#9ca3af"/>
+            </g>
+
+            <!-- Crane and Truck Mechanism -->
+            <g id="crane-truck">
+              <!-- Truck Base Chassis -->
+              <rect x="220" y="260" width="105" height="25" rx="4" fill="#4b5563"/>
+              <rect x="215" y="250" width="40" height="20" rx="3" fill="#e5e7eb"/>
+              <!-- Windshield / Cabin -->
+              <path d="M235 250H250V270H225V258C225 253.5 229.5 250 235 250Z" fill="#d1d5db"/>
+              <rect x="238" y="253" width="10" height="10" rx="1" fill="#93c5fd"/>
+              <rect x="223" y="268" width="8" height="4" rx="1" fill="#f59e0b"/> <!-- Headlight -->
+
+              <!-- Wheels -->
+              <circle cx="240" cy="285" r="12" fill="#1f2937"/>
+              <circle cx="240" cy="285" r="5" fill="#9ca3af"/>
+
+              <circle cx="295" cy="285" r="12" fill="#1f2937"/>
+              <circle cx="295" cy="285" r="5" fill="#9ca3af"/>
+
+              <!-- Crane Boom / Arm -->
+              <path d="M300 250L300 130L200 40L195 48L290 135L290 250Z" fill="#9ca3af"/>
+              <!-- Crane Cable and Hook lifting interface -->
+              <line x1="198" y1="44" x2="198" y2="70" stroke="#4b5563" stroke-width="3"/>
+              <rect x="180" y="70" width="35" height="6" rx="2" fill="#2563eb"/>
+              <circle cx="198" cy="44" r="3" fill="#1f2937"/>
+
+              <!-- Crane Operator Cab -->
+              <rect x="275" y="235" width="35" height="25" rx="3" fill="#6b7280"/>
+              <path d="M280 235H305V250H280V235Z" fill="#e5e7eb"/>
+              <rect x="285" y="239" width="15" height="8" rx="1" fill="#93c5fd"/>
+            </g>
+          </svg>
         </div>
-        <div class="fleet-icon">🚧</div>
-        <h2 id="fleet-guard-title" class="fleet-title">${escapeHtml(data.maintenance_title || 'Under Scheduled Maintenance')}</h2>
-        <p id="fleet-guard-msg" class="fleet-msg">${escapeHtml(data.maintenance_msg || 'We are currently performing routine upgrades. Service will resume shortly.')}</p>
-        
-        <div class="fleet-footer">
-          <span style="color: #475569;">Fleet Sentinel Guard</span>
-          <a class="fleet-footer-link" id="fleet-bypass-action">Administrator Unlock</a>
+
+        <!-- Typography matching the reference design -->
+        <h1 id="fleet-guard-title" class="fleet-maint-title">${escapeHtml(data.maintenance_title || 'Website under maintenance')}</h1>
+        <p id="fleet-guard-msg" class="fleet-maint-desc">${escapeHtml(data.maintenance_msg || 'This website is currently undergoing scheduled maintenance. We should be back shortly.')}</p>
+
+        <div class="fleet-maint-bypass">
+          <a class="fleet-maint-bypass-link" id="fleet-bypass-action">Admin Access</a>
         </div>
       </div>
     `;
