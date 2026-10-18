@@ -24,13 +24,13 @@ Unlike traditional CLI deployments (`firebase deploy`) that take 30–60 seconds
 
 | # | Project ID | App Name | Local Directory | Live Production URL | Guard Injected? |
 |:---:|---|---|---|---|:---:|
-| 1 | `aio-universe` | AIO Platform | `Videos/Projects/AIO/Project_file` | https://aio-universe.web.app | ✅ Yes |
-| 2 | `department-rpsit` | RPSIT Department Portal | `Videos/Projects/DEPT/Project_file` | https://department-rpsit.web.app | ✅ Yes |
-| 3 | `ecofinancies` | FinancePro | `Videos/Projects/ECO-FINANCE/Project_file` | https://ecofinancies.web.app | ✅ Yes |
-| 4 | `easy-kart-d6d3a` | Easy Kart | `Videos/Projects/EK/Project_file` | https://easy-kart-d6d3a.web.app | ✅ Yes |
+| 1 | `aio-universe` | AIO Platform | `Videos/Projects/AIO/Project_file` | https://aio-universe.web.app | ✅ Deployed Live |
+| 2 | `department-rpsit` | RPSIT Department Portal | `Videos/Projects/DEPT/Project_file` | https://department-rpsit.web.app | ✅ Deployed Live |
+| 3 | `ecofinancies` | FinancePro | `Videos/Projects/ECO-FINANCE/Project_file` | https://ecofinancies.web.app | ✅ Deployed Live |
+| 4 | `easy-kart-d6d3a` | Easy Kart | `Videos/Projects/EK/Project_file` | https://easy-kart-d6d3a.web.app | ✅ Deployed Live |
 | 5 | `lafsai` | LAF AI Platform | `Videos/Projects/LAF-Rebuild` | https://lafsai.web.app | ✅ Deployed Live |
-| 6 | `task-teamtracker` | Team Task Tracker | `Videos/Projects/team-task-tracker` | https://task-teamtracker.web.app | ✅ Yes |
-| 7 | `webmarketz` | Web Market | `Videos/Projects/web-market` | https://webmarketz.web.app | ✅ Yes |
+| 6 | `task-teamtracker` | Team Task Tracker | `Videos/Projects/team-task-tracker` | https://task-teamtracker.web.app | ✅ Deployed Live |
+| 7 | `webmarketz` | Web Market | `Videos/Projects/web-market` | https://webmarketz.web.app | ✅ Deployed Live |
 | 8 | `mygovthub` | InfraPulse AI | `Videos/Projects/infrapulse-ai` | https://mygovthub.web.app | ✅ Deployed Live |
 
 ---
