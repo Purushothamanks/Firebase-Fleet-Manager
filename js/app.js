@@ -434,6 +434,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  // Register ServiceWorker for Android PWA Installation
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        console.log('PWA ServiceWorker registered with scope:', reg.scope);
+      }).catch((err) => {
+        console.warn('PWA ServiceWorker registration skipped:', err);
+      });
+    });
+  }
+
   // Periodic Auto-Sync from Supabase every 4 seconds
   loadFleet();
   setInterval(loadFleet, 4000);
