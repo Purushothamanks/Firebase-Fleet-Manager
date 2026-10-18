@@ -3,13 +3,11 @@
  * Powered by Supabase Cloud Realtime State
  * 
  * Embed this script into any web project for instant, sub-second maintenance mode toggles.
- * 
- * Usage:
- * <script 
- *   src="https://purushothamanks.github.io/Firebase-Fleet-Manager/guard.js" 
- *   data-site-id="aio-universe" 
- *   data-check-interval="3000">
- * </script>
+ * Features:
+ * - Real-time Sub-Second Cloud Sync
+ * - Anti-Tamper Self-Healing Engine (MutationObserver protects against DevTools element deletion)
+ * - Underlying Content Neutralizer (Prevents inspection of web app content while under maintenance)
+ * - Admin Bypass Key Authentication
  */
 (function () {
   'use strict';
@@ -45,6 +43,8 @@
   } catch (e) {}
 
   let isOverlayActive = false;
+  let lastMaintenanceData = null;
+  let antiTamperObserver = null;
 
   async function evaluateStatus() {
     try {
@@ -67,8 +67,12 @@
       const isBypassed = storedBypass && data.bypass_key && storedBypass === data.bypass_key;
 
       if (data.status === 'maintenance' && !isBypassed) {
+        lastMaintenanceData = data;
         renderMaintenanceOverlay(data);
+        startAntiTamper();
       } else {
+        lastMaintenanceData = null;
+        stopAntiTamper();
         removeMaintenanceOverlay();
       }
     } catch (err) {
@@ -76,8 +80,107 @@
     }
   }
 
+  function injectStyles() {
+    let style = document.getElementById('fleet-guard-styles');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'fleet-guard-styles';
+      document.head.appendChild(style);
+    }
+    style.textContent = `
+      @keyframes fleetFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      /* Anti-Tamper: Neutralize underlying application content completely */
+      body > *:not(#fleet-maintenance-root):not(script):not(style) {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        user-select: none !important;
+      }
+      html, body {
+        overflow: hidden !important;
+        background-color: #ffffff !important;
+      }
+      #fleet-maintenance-root {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 2147483647 !important;
+        background-color: #ffffff !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 24px !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        color: #1f2937 !important;
+        overflow: auto !important;
+        animation: fleetFadeIn 0.2s ease-out forwards;
+      }
+      #fleet-maintenance-root * {
+        box-sizing: border-box !important;
+      }
+      .fleet-maint-wrapper {
+        width: 100% !important;
+        max-width: 32rem !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        text-align: center !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+      }
+      .fleet-illustration-box {
+        width: 100% !important;
+        max-width: 380px !important;
+        margin-bottom: 2rem !important;
+      }
+      .fleet-illustration-svg {
+        width: 100% !important;
+        height: auto !important;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05)) !important;
+      }
+      .fleet-maint-title {
+        font-size: clamp(1.5rem, 3.5vw, 1.875rem) !important;
+        font-weight: 700 !important;
+        color: #111827 !important;
+        letter-spacing: -0.025em !important;
+        margin: 0 0 0.75rem 0 !important;
+        line-height: 1.25 !important;
+        text-align: center !important;
+      }
+      .fleet-maint-desc {
+        color: #6b7280 !important;
+        font-size: clamp(0.875rem, 2vw, 1rem) !important;
+        line-height: 1.625 !important;
+        max-width: 28rem !important;
+        margin: 0 auto !important;
+        text-align: center !important;
+      }
+      .fleet-maint-bypass {
+        margin-top: 2rem !important;
+      }
+      .fleet-maint-bypass-link {
+        font-size: 11px !important;
+        color: #9ca3af !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        transition: color 0.15s ease !important;
+      }
+      .fleet-maint-bypass-link:hover {
+        color: #4b5563 !important;
+      }
+    `;
+  }
+
   function renderMaintenanceOverlay(data) {
-    if (isOverlayActive) {
+    const existing = document.getElementById('fleet-maintenance-root');
+    if (isOverlayActive && existing && document.body.contains(existing)) {
       const msgEl = document.getElementById('fleet-guard-msg');
       if (msgEl && data.maintenance_msg) msgEl.innerText = data.maintenance_msg;
       const titleEl = document.getElementById('fleet-guard-title');
@@ -86,6 +189,7 @@
     }
 
     isOverlayActive = true;
+    lastMaintenanceData = data;
 
     // Load Inter Font if not already present
     if (!document.getElementById('fleet-inter-font')) {
@@ -96,92 +200,14 @@
       document.head.appendChild(fontLink);
     }
 
-    if (!document.getElementById('fleet-guard-styles')) {
-      const style = document.createElement('style');
-      style.id = 'fleet-guard-styles';
-      style.textContent = `
-        @keyframes fleetFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        #fleet-maintenance-root {
-          position: fixed !important;
-          inset: 0 !important;
-          width: 100vw !important;
-          height: 100vh !important;
-          z-index: 2147483647 !important;
-          background-color: #ffffff !important;
-          display: flex !important;
-          flex-direction: column !important;
-          align-items: center !important;
-          justify-content: center !important;
-          padding: 24px !important;
-          box-sizing: border-box !important;
-          margin: 0 !important;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-          color: #1f2937 !important;
-          overflow: auto !important;
-          animation: fleetFadeIn 0.25s ease-out forwards;
-        }
-        #fleet-maintenance-root * {
-          box-sizing: border-box !important;
-        }
-        .fleet-maint-wrapper {
-          width: 100% !important;
-          max-width: 32rem !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          text-align: center !important;
-          display: flex !important;
-          flex-direction: column !important;
-          align-items: center !important;
-        }
-        .fleet-illustration-box {
-          width: 100% !important;
-          max-width: 380px !important;
-          margin-bottom: 2rem !important;
-        }
-        .fleet-illustration-svg {
-          width: 100% !important;
-          height: auto !important;
-          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05)) !important;
-        }
-        .fleet-maint-title {
-          font-size: clamp(1.5rem, 3.5vw, 1.875rem) !important;
-          font-weight: 700 !important;
-          color: #111827 !important;
-          letter-spacing: -0.025em !important;
-          margin: 0 0 0.75rem 0 !important;
-          line-height: 1.25 !important;
-          text-align: center !important;
-        }
-        .fleet-maint-desc {
-          color: #6b7280 !important;
-          font-size: clamp(0.875rem, 2vw, 1rem) !important;
-          line-height: 1.625 !important;
-          max-width: 28rem !important;
-          margin: 0 auto !important;
-          text-align: center !important;
-        }
-        .fleet-maint-bypass {
-          margin-top: 2rem !important;
-        }
-        .fleet-maint-bypass-link {
-          font-size: 11px !important;
-          color: #9ca3af !important;
-          text-decoration: none !important;
-          cursor: pointer !important;
-          transition: color 0.15s ease !important;
-        }
-        .fleet-maint-bypass-link:hover {
-          color: #4b5563 !important;
-        }
-      `;
-      document.head.appendChild(style);
+    injectStyles();
+
+    let overlay = document.getElementById('fleet-maintenance-root');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'fleet-maintenance-root';
     }
 
-    const overlay = document.createElement('div');
-    overlay.id = 'fleet-maintenance-root';
     overlay.innerHTML = `
       <div class="fleet-maint-wrapper">
         <!-- Custom Vector Illustration Matching the Reference Image -->
@@ -259,7 +285,9 @@
       </div>
     `;
 
-    document.body.appendChild(overlay);
+    if (!document.body.contains(overlay)) {
+      document.body.appendChild(overlay);
+    }
 
     const bypassBtn = document.getElementById('fleet-bypass-action');
     if (bypassBtn) {
@@ -274,15 +302,57 @@
     }
   }
 
+  function startAntiTamper() {
+    if (antiTamperObserver) return;
+    antiTamperObserver = new MutationObserver(function () {
+      if (!isOverlayActive || !lastMaintenanceData) return;
+      
+      const root = document.getElementById('fleet-maintenance-root');
+      if (!root || !document.body.contains(root)) {
+        // If element was deleted via DevTools Inspect Element, instantly re-create it in 0ms
+        renderMaintenanceOverlay(lastMaintenanceData);
+      } else {
+        // If user changed styles in DevTools (e.g. display: none, visibility: hidden, opacity: 0)
+        if (root.style.display === 'none' || root.style.visibility === 'hidden' || root.style.opacity === '0') {
+          root.style.removeProperty('display');
+          root.style.removeProperty('visibility');
+          root.style.removeProperty('opacity');
+        }
+      }
+
+      if (!document.getElementById('fleet-guard-styles')) {
+        injectStyles();
+      }
+    });
+
+    antiTamperObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class', 'hidden']
+    });
+  }
+
+  function stopAntiTamper() {
+    if (antiTamperObserver) {
+      antiTamperObserver.disconnect();
+      antiTamperObserver = null;
+    }
+  }
+
   function removeMaintenanceOverlay() {
     if (!isOverlayActive) return;
     const el = document.getElementById('fleet-maintenance-root');
     if (el) {
       el.style.opacity = '0';
-      el.style.transition = 'opacity 0.25s ease-out';
+      el.style.transition = 'opacity 0.2s ease-out';
       setTimeout(() => {
         if (el.parentNode) el.parentNode.removeChild(el);
-      }, 250);
+      }, 200);
+    }
+    const styles = document.getElementById('fleet-guard-styles');
+    if (styles && styles.parentNode) {
+      styles.parentNode.removeChild(styles);
     }
     isOverlayActive = false;
   }
