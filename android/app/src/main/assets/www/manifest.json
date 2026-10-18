@@ -1,0 +1,26 @@
+{
+  "name": "Firebase Fleet Manager",
+  "short_name": "FleetManager",
+  "description": "24/7 Cloud Guard & Central Mission Control Dashboard for Firebase Web Applications",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#0284c7",
+  "orientation": "any",
+  "categories": ["utilities", "developer", "productivity"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
