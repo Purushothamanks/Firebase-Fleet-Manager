@@ -15,12 +15,45 @@ document.addEventListener('DOMContentLoaded', () => {
   const statLatency = document.getElementById('stat-latency');
   const filterLiveCount = document.getElementById('filter-live-count');
   const filterMaintCount = document.getElementById('filter-maint-count');
-  const logsContainer = document.getElementById('logs-container');
 
-  // Modals
+  // Modal
   const editModal = document.getElementById('edit-modal');
-  const snippetModal = document.getElementById('snippet-modal');
   const editForm = document.getElementById('edit-notice-form');
+
+  // Theme Manager (Dark / Light Mode)
+  const themeToggleBtn = document.getElementById('btn-theme-toggle');
+  const themeToggleIcon = document.getElementById('theme-toggle-icon');
+
+  function getPreferredTheme() {
+    const saved = localStorage.getItem('fleet_theme');
+    if (saved) return saved;
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('fleet_theme', theme);
+    if (themeToggleIcon) {
+      if (theme === 'light') {
+        themeToggleIcon.className = 'fa-solid fa-sun';
+        themeToggleIcon.style.color = '#f59e0b';
+      } else {
+        themeToggleIcon.className = 'fa-solid fa-moon';
+        themeToggleIcon.style.color = '';
+      }
+    }
+  }
+
+  // Initialize theme
+  applyTheme(getPreferredTheme());
+
+  if (themeToggleBtn) {
+    themeToggleBtn.onclick = () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+    };
+  }
 
   const siteIcons = {
     'aio-universe': 'fa-solid fa-robot',
@@ -55,100 +88,111 @@ document.addEventListener('DOMContentLoaded', () => {
       renderDashboard();
     } catch (err) {
       console.error(err);
-      fleetGrid.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;">
-          <i class="fa-solid fa-triangle-exclamation" style="font-size: 32px; margin-bottom: 12px;"></i>
-          <p>Failed to connect to Supabase Cloud State store: ${err.message}</p>
-        </div>
-      `;
+      if (fleetGrid && Object.keys(fleetData).length === 0) {
+        fleetGrid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 32px; margin-bottom: 12px;"></i>
+            <h3>Unable to connect to Supabase Cloud</h3>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 6px;">Check internet connection or Supabase API keys.</p>
+          </div>
+        `;
+      }
     }
   }
 
-  // 2. Render Cards & Stats
+  // 2. Render Cards & Metrics
   function renderDashboard() {
-    const siteIds = Object.keys(fleetData);
-    const total = siteIds.length;
-    let liveCount = 0;
-    let maintCount = 0;
+    const sites = Object.values(fleetData);
+    if (sites.length === 0) return;
 
-    siteIds.forEach(id => {
-      if (fleetData[id].status === 'maintenance') maintCount++;
-      else liveCount++;
-    });
+    // Calculate metrics
+    const totalCount = sites.length;
+    const maintCount = sites.filter(s => s.status === 'maintenance').length;
+    const liveCount = totalCount - maintCount;
 
-    statTotal.innerText = total;
-    statLive.innerText = liveCount;
-    statMaint.innerText = maintCount;
-    filterLiveCount.innerText = liveCount;
-    filterMaintCount.innerText = maintCount;
+    if (statTotal) statTotal.innerText = totalCount;
+    if (statLive) statLive.innerText = liveCount;
+    if (statMaint) statMaint.innerText = maintCount;
+    if (filterLiveCount) filterLiveCount.innerText = liveCount;
+    if (filterMaintCount) filterMaintCount.innerText = maintCount;
 
-    const filteredIds = siteIds.filter(id => {
-      if (currentFilter === 'live') return fleetData[id].status === 'live';
-      if (currentFilter === 'maintenance') return fleetData[id].status === 'maintenance';
+    // Filter cards
+    const filteredSites = sites.filter(s => {
+      if (currentFilter === 'live') return s.status !== 'maintenance';
+      if (currentFilter === 'maintenance') return s.status === 'maintenance';
       return true;
     });
 
-    fleetGrid.innerHTML = filteredIds.map(id => createCardHTML(id, fleetData[id])).join('');
-    attachCardListeners();
+    if (fleetGrid) {
+      fleetGrid.innerHTML = filteredSites.map(site => createCardHTML(site)).join('');
+      attachCardListeners();
+    }
   }
 
-  function createCardHTML(id, site) {
+  function createCardHTML(site) {
     const isMaint = site.status === 'maintenance';
+    const id = site.site_id;
     const iconClass = siteIcons[id] || 'fa-solid fa-globe';
-    const bypassUrl = `${site.url}?bypass=${encodeURIComponent(site.bypass_key || 'fleet-admin-secret-2026')}`;
 
     return `
       <div class="app-card ${isMaint ? 'card-maintenance' : ''}" id="card-${id}">
         <div class="card-top">
           <div class="app-header">
-            <div class="app-icon"><i class="${iconClass}"></i></div>
+            <div class="app-icon">
+              <i class="${iconClass}"></i>
+            </div>
             <div class="app-titles">
-              <h3>${escapeHtml(site.name)}</h3>
-              <span class="app-tagline">${escapeHtml(site.tagline || '')}</span>
+              <h3>${escapeHtml(site.name || id)}</h3>
+              <div class="app-tagline">${escapeHtml(site.tagline || 'Firebase Project')}</div>
             </div>
           </div>
           <span class="status-badge ${isMaint ? 'maintenance' : 'live'}">
-            <span class="pulse-dot" style="background: ${isMaint ? '#f59e0b' : '#10b981'}; box-shadow: 0 0 8px ${isMaint ? '#f59e0b' : '#10b981'};"></span>
+            <i class="fa-solid ${isMaint ? 'fa-screwdriver-wrench' : 'fa-circle-check'}"></i>
             ${isMaint ? 'Maintenance' : 'Live'}
           </span>
         </div>
 
         <div class="card-details">
           <div class="detail-row">
-            <span class="detail-label">Project ID</span>
-            <span class="detail-val">${escapeHtml(id)}</span>
+            <span class="detail-label">Project ID:</span>
+            <span class="detail-val"><code>${escapeHtml(id)}</code></span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Domain</span>
-            <span class="detail-val">${escapeHtml(site.url.replace('https://', ''))}</span>
+            <span class="detail-label">Domain:</span>
+            <span class="detail-val">${escapeHtml(site.url ? site.url.replace('https://', '') : '')}</span>
           </div>
+          ${site.estimated_return ? `
+            <div class="detail-row">
+              <span class="detail-label">Est. Return:</span>
+              <span class="detail-val" style="color: #f59e0b;">${escapeHtml(site.estimated_return)}</span>
+            </div>
+          ` : ''}
           <div class="detail-row">
-            <span class="detail-label">Cloud Sync</span>
-            <span class="detail-val" style="color: #34d399;">24/7 Supabase</span>
+            <span class="detail-label">Cloud State:</span>
+            <span class="detail-val" style="color: #10b981;">Synced</span>
           </div>
         </div>
 
         <div class="card-actions">
-          <button class="toggle-switch-btn ${isMaint ? 'toggle-to-live' : 'toggle-to-maint'}" 
-                  data-action="toggle" 
-                  data-id="${id}" 
-                  data-next="${isMaint ? 'live' : 'maintenance'}">
+          <button 
+            class="toggle-switch-btn ${isMaint ? 'toggle-to-live' : 'toggle-to-maint'}"
+            data-action="toggle"
+            data-id="${id}"
+            data-next="${isMaint ? 'live' : 'maintenance'}"
+          >
             <i class="fa-solid ${isMaint ? 'fa-circle-play' : 'fa-screwdriver-wrench'}"></i>
             ${isMaint ? 'Restore App to Live' : 'Keep Maintenance'}
           </button>
 
           <div class="card-sub-actions">
-            <a href="${site.url}" target="_blank" class="icon-btn" title="Open Public URL">
-              <i class="fa-solid fa-arrow-up-right-from-square"></i> Visit Site
-            </a>
-            <a href="${bypassUrl}" target="_blank" class="icon-btn" title="Open with Admin Bypass Passkey">
-              <i class="fa-solid fa-key"></i> Bypass View
-            </a>
-            <button class="icon-btn" data-action="edit" data-id="${id}" title="Edit Announcement">
+            <button class="icon-btn" data-action="edit" data-id="${id}" title="Edit Announcement Notice">
               <i class="fa-solid fa-pen-to-square"></i> Notice
             </button>
+            <a href="${site.url}" target="_blank" class="icon-btn" title="Open Live Web App">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Visit
+            </a>
             <button class="icon-btn" data-action="ping" data-id="${id}" title="Ping Latency">
-              <i class="fa-solid fa-satellite-dish"></i>
+              <i class="fa-solid fa-satellite-dish"></i> Ping
             </button>
           </div>
         </div>
@@ -214,53 +258,59 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 4. Bulk Operations
-  document.getElementById('btn-bulk-maint').onclick = async () => {
-    if (!confirm("⚠️ Put ALL 8 managed websites under MAINTENANCE mode?")) return;
-    try {
-      const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?site_id=neq.none`;
-      await fetch(endpoint, {
-        method: 'PATCH',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          status: 'maintenance',
-          last_changed: new Date().toISOString()
-        })
-      });
+  const bulkMaintBtn = document.getElementById('btn-bulk-maint');
+  if (bulkMaintBtn) {
+    bulkMaintBtn.onclick = async () => {
+      if (!confirm("⚠️ Put ALL 8 managed websites under MAINTENANCE mode?")) return;
+      try {
+        const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?site_id=neq.none`;
+        await fetch(endpoint, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            status: 'maintenance',
+            last_changed: new Date().toISOString()
+          })
+        });
 
-      addAuditLog('BULK_MAINTENANCE', 'Put ALL 8 projects under maintenance mode');
-      await loadFleet();
-    } catch (err) {
-      alert("Bulk error: " + err.message);
-    }
-  };
+        addAuditLog('BULK_MAINTENANCE', 'Put ALL 8 projects under maintenance mode');
+        await loadFleet();
+      } catch (err) {
+        alert("Bulk error: " + err.message);
+      }
+    };
+  }
 
-  document.getElementById('btn-bulk-live').onclick = async () => {
-    if (!confirm("🟢 Restore ALL 8 managed websites to LIVE operation?")) return;
-    try {
-      const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?site_id=neq.none`;
-      await fetch(endpoint, {
-        method: 'PATCH',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          status: 'live',
-          last_changed: new Date().toISOString()
-        })
-      });
+  const bulkLiveBtn = document.getElementById('btn-bulk-live');
+  if (bulkLiveBtn) {
+    bulkLiveBtn.onclick = async () => {
+      if (!confirm("🟢 Restore ALL 8 managed websites to LIVE operation?")) return;
+      try {
+        const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?site_id=neq.none`;
+        await fetch(endpoint, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            status: 'live',
+            last_changed: new Date().toISOString()
+          })
+        });
 
-      addAuditLog('BULK_RESTORE_LIVE', 'Restored ALL 8 projects to LIVE mode');
-      await loadFleet();
-    } catch (err) {
-      alert("Bulk error: " + err.message);
-    }
-  };
+        addAuditLog('BULK_RESTORE_LIVE', 'Restored ALL 8 projects to LIVE mode');
+        await loadFleet();
+      } catch (err) {
+        alert("Bulk error: " + err.message);
+      }
+    };
+  }
 
   // 5. Ping Latency (Browser Fetch)
   async function pingSite(siteId) {
@@ -279,29 +329,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  document.getElementById('btn-ping-all').onclick = async () => {
-    statLatency.innerText = "Pinging...";
-    const siteIds = Object.keys(fleetData);
-    let totalMs = 0;
-    let success = 0;
-
-    for (const id of siteIds) {
+  // Ping All Fleet
+  const pingAllBtn = document.getElementById('btn-ping-all');
+  if (pingAllBtn) {
+    pingAllBtn.onclick = async () => {
+      const icon = pingAllBtn.querySelector('i');
+      if (icon) icon.classList.add('fa-spin');
+      
       const start = performance.now();
-      try {
-        await fetch(fleetData[id].url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' });
-        totalMs += Math.round(performance.now() - start);
-        success++;
-      } catch (e) {}
-    }
+      await loadFleet();
+      const latency = Math.round(performance.now() - start);
+      
+      if (statLatency) statLatency.innerText = `${latency} ms`;
+      if (icon) icon.classList.remove('fa-spin');
+    };
+  }
 
-    if (success > 0) {
-      statLatency.innerText = `${Math.round(totalMs / success)} ms`;
-    } else {
-      statLatency.innerText = "-- ms";
-    }
-  };
-
-  // 6. Filter Controls
+  // 6. Filter Buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -311,27 +355,34 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   });
 
-  // 7. Modals
+  // 7. Edit Notice Modal
   function openEditModal(siteId) {
     const site = fleetData[siteId];
     if (!site) return;
 
     document.getElementById('modal-site-id').value = siteId;
     document.getElementById('modal-site-title').innerText = `Edit Notice: ${site.name}`;
-    document.getElementById('modal-input-title').value = site.maintenance_title || '';
-    document.getElementById('modal-input-msg').value = site.maintenance_msg || '';
+    document.getElementById('modal-input-title').value = site.maintenance_title || 'Website under maintenance';
+    document.getElementById('modal-input-msg').value = site.maintenance_msg || 'This website is currently undergoing scheduled maintenance. We should be back shortly.';
     document.getElementById('modal-input-return').value = site.estimated_return || '';
     document.getElementById('modal-input-bypass').value = site.bypass_key || 'fleet-admin-secret-2026';
 
     editModal.classList.add('open');
   }
 
-  document.getElementById('modal-close-btn').onclick = () => editModal.classList.remove('open');
-  document.getElementById('modal-cancel-btn').onclick = () => editModal.classList.remove('open');
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+  if (modalCloseBtn) {
+    modalCloseBtn.onclick = () => editModal.classList.remove('open');
+  }
+  const modalCancelBtn = document.getElementById('modal-cancel-btn');
+  if (modalCancelBtn) {
+    modalCancelBtn.onclick = () => editModal.classList.remove('open');
+  }
 
   editForm.onsubmit = async (e) => {
     e.preventDefault();
     const siteId = document.getElementById('modal-site-id').value;
+
     const updatePayload = {
       maintenance_title: document.getElementById('modal-input-title').value,
       maintenance_msg: document.getElementById('modal-input-msg').value,
@@ -364,56 +415,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Snippet Modal
-  document.getElementById('btn-guard-code').onclick = () => snippetModal.classList.add('open');
-  document.getElementById('snippet-close-btn').onclick = () => snippetModal.classList.remove('open');
-  document.getElementById('btn-copy-snippet').onclick = () => {
-    const text = document.getElementById('snippet-code-text').innerText;
-    navigator.clipboard.writeText(text);
-    alert("Copied 24/7 Cloud Guard snippet to clipboard!");
-  };
-
-  // 8. Audit Logs (Persistent via LocalStorage)
+  // Safe Audit Log persistence
   function addAuditLog(action, details) {
-    let logs = [];
     try {
-      logs = JSON.parse(localStorage.getItem('fleet_audit_logs') || '[]');
+      let logs = JSON.parse(localStorage.getItem('fleet_audit_logs') || '[]');
+      logs.unshift({
+        timestamp: new Date().toISOString(),
+        action,
+        details
+      });
+      if (logs.length > 50) logs = logs.slice(0, 50);
+      localStorage.setItem('fleet_audit_logs', JSON.stringify(logs));
     } catch (e) {}
-
-    logs.unshift({
-      timestamp: new Date().toISOString(),
-      action,
-      details
-    });
-
-    if (logs.length > 50) logs = logs.slice(0, 50);
-    localStorage.setItem('fleet_audit_logs', JSON.stringify(logs));
-    renderLogs();
   }
-
-  function renderLogs() {
-    let logs = [];
-    try {
-      logs = JSON.parse(localStorage.getItem('fleet_audit_logs') || '[]');
-    } catch (e) {}
-
-    if (logs.length === 0) {
-      logsContainer.innerHTML = '<div style="color: #64748b; font-size: 13px; padding: 12px;">No activity logs recorded yet. Toggling maintenance will record events here.</div>';
-      return;
-    }
-
-    logsContainer.innerHTML = logs.map(l => `
-      <div class="log-item ${l.action.includes('MAINT') ? 'maint' : 'live'}">
-        <div class="log-details">
-          <span class="status-badge ${l.action.includes('MAINT') ? 'maintenance' : 'live'}">${l.action}</span>
-          <span>${escapeHtml(l.details)}</span>
-        </div>
-        <span class="log-time">${new Date(l.timestamp).toLocaleTimeString()}</span>
-      </div>
-    `).join('');
-  }
-
-  document.getElementById('btn-refresh-logs').onclick = renderLogs;
 
   function escapeHtml(str) {
     if (!str) return '';
@@ -422,6 +436,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Periodic Auto-Sync from Supabase every 4 seconds
   loadFleet();
-  renderLogs();
   setInterval(loadFleet, 4000);
 });

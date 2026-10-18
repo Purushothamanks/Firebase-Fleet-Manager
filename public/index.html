@@ -32,15 +32,15 @@
       </div>
 
       <div class="nav-actions">
-        <button id="btn-ping-all" class="btn btn-secondary">
-          <i class="fa-solid fa-arrows-rotate"></i> Ping Fleet
+        <button id="btn-ping-all" class="btn btn-secondary" title="Ping All Fleet Applications">
+          <i class="fa-solid fa-arrows-rotate"></i> <span class="btn-text">Ping Fleet</span>
         </button>
-        <button id="btn-guard-code" class="btn btn-secondary">
-          <i class="fa-solid fa-code"></i> Integration Snippet
+        <button id="btn-theme-toggle" class="theme-toggle-btn" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+          <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
         </button>
-        <div class="status-indicator">
+        <div class="status-indicator" title="Connected to 24/7 Cloud State">
           <span class="pulse-dot"></span>
-          <span>Supabase 24/7 Live</span>
+          <span class="status-text">Supabase 24/7 Live</span>
         </div>
       </div>
     </div>
@@ -75,7 +75,7 @@
         <div class="metric-icon icon-purple"><i class="fa-solid fa-cloud"></i></div>
         <div class="metric-info">
           <span class="metric-label">Cloud Sync State</span>
-          <span class="metric-value" style="font-size: 18px; color: #34d399;" id="stat-latency">Active 24/7</span>
+          <span class="metric-value" style="font-size: 18px; color: #10b981;" id="stat-latency">Active 24/7</span>
         </div>
       </div>
     </section>
@@ -111,25 +111,9 @@
       </div>
 
       <div class="fleet-grid" id="fleet-grid">
-        <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #94a3b8;">
+        <div class="loading-state" style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
           <i class="fa-solid fa-spinner fa-spin"></i> Connecting to 24/7 Supabase Cloud Registry...
         </div>
-      </div>
-    </section>
-
-    <!-- Activity & Audit Log -->
-    <section class="logs-section">
-      <div class="section-header">
-        <div class="section-title">
-          <h2><i class="fa-solid fa-clock-rotate-left"></i> Real-Time Audit Log</h2>
-          <span class="subtext">Timestamped log of status changes and maintenance events</span>
-        </div>
-        <button id="btn-refresh-logs" class="btn btn-sm btn-secondary">
-          <i class="fa-solid fa-arrows-rotate"></i> Refresh Logs
-        </button>
-      </div>
-      <div class="logs-container" id="logs-container">
-        <!-- Populated dynamically -->
       </div>
     </section>
   </main>
@@ -145,11 +129,11 @@
         <input type="hidden" id="modal-site-id">
         <div class="form-group">
           <label>Announcement Headline</label>
-          <input type="text" id="modal-input-title" required placeholder="e.g. Scheduled Maintenance">
+          <input type="text" id="modal-input-title" required placeholder="e.g. Website under maintenance">
         </div>
         <div class="form-group">
           <label>Maintenance Message to Public Visitors</label>
-          <textarea id="modal-input-msg" rows="4" required placeholder="Describe reason for downtime..."></textarea>
+          <textarea id="modal-input-msg" rows="4" required placeholder="This website is currently undergoing scheduled maintenance. We should be back shortly."></textarea>
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -166,43 +150,6 @@
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save to Cloud</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- Snippet Modal -->
-  <div class="modal-backdrop" id="snippet-modal">
-    <div class="modal-card modal-lg">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-code"></i> Universal Client Guard Snippet</h3>
-        <button class="modal-close" id="snippet-close-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-desc" style="color: #94a3b8; font-size: 13px; margin-bottom: 14px;">
-          Add this script tag into the <code>&lt;head&gt;</code> of your application's <code>index.html</code> (or <code>layout.tsx</code>). It connects directly to your 24/7 Cloud State store with zero server dependencies:
-        </p>
-        <div class="code-block">
-          <pre id="snippet-code-text">&lt;!-- Firebase Fleet Cloud Guard (24/7 Serverless) --&gt;
-&lt;script 
-  src="https://purushothamanks.github.io/Firebase-Fleet-Manager/guard.js" 
-  data-site-id="aio-universe" 
-  data-check-interval="3000"&gt;
-&lt;/script&gt;</pre>
-          <button class="btn btn-sm btn-secondary copy-btn" id="btn-copy-snippet">
-            <i class="fa-solid fa-copy"></i> Copy Snippet
-          </button>
-        </div>
-        <h4 style="margin: 20px 0 10px; color: #f8fafc; font-size: 14px;">Registered Project Identifiers:</h4>
-        <div class="tag-list">
-          <code>aio-universe</code>
-          <code>department-rpsit</code>
-          <code>ecofinancies</code>
-          <code>easy-kart-d6d3a</code>
-          <code>lafsai</code>
-          <code>task-teamtracker</code>
-          <code>webmarketz</code>
-          <code>mygovthub</code>
-        </div>
-      </div>
     </div>
   </div>
 
