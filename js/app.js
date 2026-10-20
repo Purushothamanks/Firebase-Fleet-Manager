@@ -63,7 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'lafsai': 'fa-solid fa-brain',
     'task-teamtracker': 'fa-solid fa-list-check',
     'webmarketz': 'fa-solid fa-store',
-    'mygovthub': 'fa-solid fa-city'
+    'mygovthub': 'fa-solid fa-city',
+    'infinite-techfest': 'fa-solid fa-ticket'
   };
 
   // 1. Load Fleet from Supabase Cloud
