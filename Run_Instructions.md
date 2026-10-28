@@ -10,7 +10,7 @@
 ---
 
 ## ⚡ Overview & Purpose
-**Firebase Fleet Manager** is a centralized 24/7 mission control platform that monitors and instantly toggles **Maintenance Mode** across all 8 live Firebase web applications.
+**Firebase Fleet Manager** is a centralized 24/7 mission control platform that monitors and instantly toggles **Maintenance Mode** across all 11 live Firebase web applications.
 
 Unlike traditional CLI deployments (`firebase deploy`) that take 30–60 seconds, this system uses the **Real-Time Cloud Guard** pattern:
 - **Instant Response**: Under 50 milliseconds.
@@ -20,23 +20,26 @@ Unlike traditional CLI deployments (`firebase deploy`) that take 30–60 seconds
 
 ---
 
-## 📋 Monitored Firebase Fleet Registry (8 Projects)
+## 📋 Monitored Firebase Fleet Registry (11 Projects)
 
 | # | Project ID | App Name | Local Directory | Live Production URL | Guard Injected? |
 |:---:|---|---|---|---|:---:|
-| 1 | `aio-universe` | AIO Platform | `Videos/Projects/AIO/Project_file` | https://aio-universe.web.app | ✅ Deployed Live |
-| 2 | `department-rpsit` | RPSIT Department Portal | `Videos/Projects/DEPT/Project_file` | https://department-rpsit.web.app | ✅ Deployed Live |
-| 3 | `ecofinancies` | FinancePro | `Videos/Projects/ECO-FINANCE/Project_file` | https://ecofinancies.web.app | ✅ Deployed Live |
-| 4 | `easy-kart-d6d3a` | Easy Kart | `Videos/Projects/EK/Project_file` | https://easy-kart-d6d3a.web.app | ✅ Deployed Live |
-| 5 | `lafsai` | LAF AI Platform | `Videos/Projects/LAF-Rebuild` | https://lafsai.web.app | ✅ Deployed Live |
-| 6 | `task-teamtracker` | Team Task Tracker | `Videos/Projects/team-task-tracker` | https://task-teamtracker.web.app | ✅ Deployed Live |
-| 7 | `webmarketz` | Web Market | `Videos/Projects/web-market` | https://webmarketz.web.app | ✅ Deployed Live |
-| 8 | `mygovthub` | InfraPulse AI | `Videos/Projects/infrapulse-ai` | https://mygovthub.web.app | ✅ Deployed Live |
+| 1 | `slss-system-share` | SLSS Live Stream | `Videos/Projects/SLSS` | https://slss-system-share.web.app | ✅ Deployed Live |
+| 2 | `aio-universe` | AIO Platform | `Videos/Projects/AIO/Project_file` | https://aio-universe.web.app | ✅ Deployed Live |
+| 3 | `department-rpsit` | RPSIT Department Portal | `Videos/Projects/DEPT/Project_file` | https://department-rpsit.web.app | ✅ Deployed Live |
+| 4 | `ecofinancies` | FinancePro | `Videos/Projects/ECO-FINANCE/Project_file` | https://ecofinancies.web.app | ✅ Deployed Live |
+| 5 | `easy-kart-d6d3a` | Easy Kart | `Videos/Projects/EK/Project_file` | https://easy-kart-d6d3a.web.app | ✅ Deployed Live |
+| 6 | `lafsai` | LAF AI Platform | `Videos/Projects/LAF-Rebuild` | https://lafsai.web.app | ✅ Deployed Live |
+| 7 | `task-teamtracker` | Team Task Tracker | `Videos/Projects/team-task-tracker` | https://task-teamtracker.web.app | ✅ Deployed Live |
+| 8 | `webmarketz` | Web Market | `Videos/Projects/web-market` | https://webmarketz.web.app | ✅ Deployed Live |
+| 9 | `mygovthub` | InfraPulse AI | `Videos/Projects/infrapulse-ai` | https://mygovthub.web.app | ✅ Deployed Live |
+| 10 | `infinite-techfest` | Infinite Techfest 2026 | `Videos/Projects/Infinite-techfest` | https://infinite-techfest.web.app | ✅ Deployed Live |
+| 11 | `portfoli-yo` | Purushothaman Portfolio | `Videos/Projects/PORTFOLIO` | https://portfoli-yo.web.app | ✅ Deployed Live |
 
 ---
 
 ## 🔌 Universal Client Guard Tag
-Each of the 8 projects includes this script in its `<head>` tag:
+Each of the 11 projects includes this script in its `<head>` tag:
 ```html
 <!-- Firebase Fleet Cloud Guard (24/7 Serverless) -->
 <script 

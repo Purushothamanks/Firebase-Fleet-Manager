@@ -26,7 +26,7 @@
   <!-- Dashboard Stylesheet -->
   <link rel="stylesheet" href="css/dashboard.css">
 </head>
-<body>
+<body class="app-locked">
   <!-- Top Navigation Header -->
   <header class="navbar">
     <div class="nav-container">
@@ -47,6 +47,9 @@
         <button id="btn-theme-toggle" class="theme-toggle-btn" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
           <i id="theme-toggle-icon" class="fa-solid fa-moon"></i>
         </button>
+        <button id="btn-lock-app" class="theme-toggle-btn" title="Lock Mission Control" aria-label="Lock dashboard">
+          <i class="fa-solid fa-lock"></i>
+        </button>
         <div class="status-indicator" title="Connected to 24/7 Cloud State">
           <span class="pulse-dot"></span>
           <span class="status-text">Supabase 24/7 Live</span>
@@ -63,14 +66,14 @@
         <div class="metric-icon icon-blue"><i class="fa-solid fa-cubes"></i></div>
         <div class="metric-info">
           <span class="metric-label">Managed Applications</span>
-          <span class="metric-value" id="stat-total">8</span>
+          <span class="metric-value" id="stat-total">11</span>
         </div>
       </div>
       <div class="metric-card">
         <div class="metric-icon icon-green"><i class="fa-solid fa-circle-check"></i></div>
         <div class="metric-info">
           <span class="metric-label">Live Operational</span>
-          <span class="metric-value text-green" id="stat-live">8</span>
+          <span class="metric-value text-green" id="stat-live">11</span>
         </div>
       </div>
       <div class="metric-card">
@@ -110,11 +113,11 @@
       <div class="section-header">
         <div class="section-title">
           <h2>Monitored Web Applications</h2>
-          <span class="badge" id="fleet-count-badge">8 Projects</span>
+          <span class="badge" id="fleet-count-badge">11 Projects</span>
         </div>
         <div class="filter-controls">
-          <button class="filter-btn active" data-filter="all">All (8)</button>
-          <button class="filter-btn" data-filter="live">Live (<span id="filter-live-count">8</span>)</button>
+          <button class="filter-btn active" data-filter="all">All (<span id="filter-all-count">11</span>)</button>
+          <button class="filter-btn" data-filter="live">Live (<span id="filter-live-count">11</span>)</button>
           <button class="filter-btn" data-filter="maintenance">Maintenance (<span id="filter-maint-count">0</span>)</button>
         </div>
       </div>
@@ -159,6 +162,55 @@
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save to Cloud</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Security Authorization Lockscreen -->
+  <div class="auth-lockscreen" id="auth-lockscreen">
+    <div class="auth-card">
+      <div class="auth-icon-wrap">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h2 class="auth-title">Firebase Fleet Manager</h2>
+      <p class="auth-desc">24/7 Cloud Sentinel & Control Center. Enter master authorization passkey to access mission control.</p>
+      
+      <form id="auth-form" class="auth-form" autocomplete="off">
+        <div class="auth-input-group">
+          <i class="fa-solid fa-key input-lead-icon"></i>
+          <input 
+            type="password" 
+            id="auth-password" 
+            class="auth-input" 
+            placeholder="Enter Master Passkey..." 
+            required 
+            autofocus 
+            autocomplete="current-password"
+            aria-label="Master Passkey"
+          />
+          <button type="button" id="auth-toggle-pwd" class="auth-eye-btn" title="Show or hide password" aria-label="Toggle password visibility">
+            <i class="fa-solid fa-eye" id="auth-eye-icon"></i>
+          </button>
+        </div>
+
+        <div class="auth-error" id="auth-error" role="alert">
+          <i class="fa-solid fa-circle-exclamation"></i> Incorrect authorization passkey. Access denied.
+        </div>
+
+        <div class="auth-options">
+          <label class="auth-checkbox-label">
+            <input type="checkbox" id="auth-remember" checked />
+            <span>Remember this device</span>
+          </label>
+        </div>
+
+        <button type="submit" class="auth-submit-btn" id="auth-submit-btn">
+          <i class="fa-solid fa-unlock-keyhole"></i> Unlock Mission Control
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <span>Protected with 24/7 Cloud Guard Anti-Tamper Isolation</span>
+      </div>
     </div>
   </div>
 

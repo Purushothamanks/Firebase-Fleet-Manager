@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![GitHub Pages](https://img.shields.io/badge/Hosted%20On-GitHub%20Pages-blueviolet.svg)](https://purushothamanks.github.io/Firebase-Fleet-Manager/)
 [![Cloud State](https://img.shields.io/badge/Cloud%20State-Supabase%2024%2F7-emerald.svg)](https://supabase.com/)
-[![Status](https://img.shields.io/badge/Fleet%20Status-8%20Apps%20Operational-brightgreen.svg)](#-monitored-fleet-registry)
+[![Status](https://img.shields.io/badge/Fleet%20Status-11%20Apps%20Operational-brightgreen.svg)](#-monitored-fleet-registry)
 
 ---
 
@@ -120,14 +120,17 @@ sequenceDiagram
 
 | # | Project ID | Application Name | Live Production URL | Primary Stack |
 |:---:|---|---|---|---|
-| **1** | `aio-universe` | **AIO Platform** | [https://aio-universe.web.app](https://aio-universe.web.app) | React 18, Babel CDN |
-| **2** | `department-rpsit` | **RPSIT Department Portal** | [https://department-rpsit.web.app](https://department-rpsit.web.app) | Modern HTML5, Responsive Portal |
-| **3** | `ecofinancies` | **FinancePro** | [https://ecofinancies.web.app](https://ecofinancies.web.app) | Single-Page Finance Suite |
-| **4** | `easy-kart-d6d3a` | **Easy Kart** | [https://easy-kart-d6d3a.web.app](https://easy-kart-d6d3a.web.app) | E-Commerce Product Aggregator |
-| **5** | `lafsai` | **LAF AI Platform** | [https://lafsai.web.app](https://lafsai.web.app) | React 19, Vite, Tailwind |
-| **6** | `task-teamtracker` | **Team Task Tracker** | [https://task-teamtracker.web.app](https://task-teamtracker.web.app) | React 19, Vite, Kanban Engine |
-| **7** | `webmarketz` | **Web Market** | [https://webmarketz.web.app](https://webmarketz.web.app) | Next.js Static Export, Tailwind |
-| **8** | `mygovthub` | **InfraPulse AI** | [https://mygovthub.web.app](https://mygovthub.web.app) | Next.js 16 App Router, Civic GIS |
+| **1** | `slss-system-share` | **SLSS Live Stream** | [https://slss-system-share.web.app](https://slss-system-share.web.app) | Real-time Wayland Stream, Python/JS |
+| **2** | `aio-universe` | **AIO Platform** | [https://aio-universe.web.app](https://aio-universe.web.app) | React 18, Babel CDN |
+| **3** | `department-rpsit` | **RPSIT Department Portal** | [https://department-rpsit.web.app](https://department-rpsit.web.app) | Modern HTML5, Responsive Portal |
+| **4** | `ecofinancies` | **FinancePro** | [https://ecofinancies.web.app](https://ecofinancies.web.app) | Single-Page Finance Suite |
+| **5** | `easy-kart-d6d3a` | **Easy Kart** | [https://easy-kart-d6d3a.web.app](https://easy-kart-d6d3a.web.app) | E-Commerce Product Aggregator |
+| **6** | `lafsai` | **LAF AI Platform** | [https://lafsai.web.app](https://lafsai.web.app) | React 19, Vite, Tailwind |
+| **7** | `task-teamtracker` | **Team Task Tracker** | [https://task-teamtracker.web.app](https://task-teamtracker.web.app) | React 19, Vite, Kanban Engine |
+| **8** | `webmarketz` | **Web Market** | [https://webmarketz.web.app](https://webmarketz.web.app) | Next.js Static Export, Tailwind |
+| **9** | `mygovthub` | **InfraPulse AI** | [https://mygovthub.web.app](https://mygovthub.web.app) | Next.js 16 App Router, Civic GIS |
+| **10** | `infinite-techfest` | **Infinite Techfest 2026** | [https://infinite-techfest.web.app](https://infinite-techfest.web.app) | Symposium Registration & Passes |
+| **11** | `portfoli-yo` | **Purushothaman Portfolio** | [https://portfoli-yo.web.app](https://portfoli-yo.web.app) | Full-Stack & AI Engineer Showcase |
 
 ---
 

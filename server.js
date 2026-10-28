@@ -24,8 +24,20 @@ app.get('/maintenance-guard.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'maintenance-guard.js'));
 });
 
-// Default initial state for the 8 managed Firebase projects
+// Default initial state for the managed Firebase projects
 const INITIAL_FLEET = {
+  "slss-system-share": {
+    name: "SLSS (System Live Screen Sharing)",
+    tagline: "Encrypted Real-Time Wayland Desktop Stream",
+    url: "https://slss-system-share.web.app",
+    altUrl: "https://slss-system-share.firebaseapp.com",
+    status: "live",
+    maintenanceTitle: "System at rest",
+    maintenanceMsg: "Garuda Linux desktop session is currently resting or powered down. Live stream resumes automatically upon boot.",
+    estimatedReturn: "Instant on Boot",
+    bypassKey: "fleet-admin-secret-2026",
+    lastChanged: new Date().toISOString()
+  },
   "aio-universe": {
     name: "AIO Platform",
     tagline: "AI Tools Directory & Aggregator",
@@ -121,6 +133,30 @@ const INITIAL_FLEET = {
     estimatedReturn: "",
     bypassKey: "fleet-admin-secret-2026",
     lastChanged: new Date().toISOString()
+  },
+  "infinite-techfest": {
+    name: "Infinite Techfest 2026",
+    tagline: "National Inter-Collegiate Technical Symposium",
+    url: "https://infinite-techfest.web.app",
+    altUrl: "https://infinite-techfest.firebaseapp.com",
+    status: "live",
+    maintenanceTitle: "Techfest Portal Sync",
+    maintenanceMsg: "Infinite Techfest event registration and QR pass check-in servers are currently undergoing live synchronization.",
+    estimatedReturn: "15 min",
+    bypassKey: "fleet-admin-secret-2026",
+    lastChanged: new Date().toISOString()
+  },
+  "portfoli-yo": {
+    name: "Purushothaman Portfolio",
+    tagline: "Full-Stack & AI Engineer Portfolio",
+    url: "https://portfoli-yo.web.app",
+    altUrl: "https://portfoli-yo.firebaseapp.com",
+    status: "live",
+    maintenanceTitle: "Portfolio Showcase Maintenance",
+    maintenanceMsg: "Portfolio projects and AI showcase are undergoing scheduled updates. Resuming shortly.",
+    estimatedReturn: "15 min",
+    bypassKey: "fleet-admin-secret-2026",
+    lastChanged: new Date().toISOString()
   }
 };
 
@@ -203,7 +239,7 @@ app.get('/api/status/:siteId', (req, res) => {
 // DASHBOARD FLEET MANAGEMENT ENDPOINTS
 // -----------------------------------------------------------------------------
 
-// Get full state of all 8 sites
+// Get full state of all managed fleet sites
 app.get('/api/fleet', (req, res) => {
   res.json(getFleetState());
 });
@@ -251,7 +287,7 @@ app.post('/api/fleet/bulk', (req, res) => {
   logAuditEvent(
     'BULK_STATUS_CHANGE',
     'ALL',
-    `All 8 fleet projects set to ${status.toUpperCase()}`
+    `All ${Object.keys(fleet).length} fleet projects set to ${status.toUpperCase()}`
   );
 
   res.json({ success: true, status, fleet });

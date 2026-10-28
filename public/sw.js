@@ -1,5 +1,5 @@
 // Service Worker for Firebase Fleet Manager (Android PWA)
-const CACHE_NAME = 'firebase-fleet-v1';
+const CACHE_NAME = 'firebase-fleet-v2';
 const STATIC_ASSETS = [
   './',
   './index.html',

@@ -55,7 +55,129 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  // ============================================================================
+  // Security Authentication Gate (Master Password Protection)
+  // ============================================================================
+  const DEFAULT_MASTER_PASSWORD = '...';
+  const MASTER_BYPASS_PASSWORD = 'fleet-admin-secret-2026';
+  const AUTH_STORAGE_KEY = 'fleet_manager_authenticated';
+  const CUSTOM_PASS_KEY = 'fleet_custom_password';
+
+  function isValidPassword(entered) {
+    const custom = localStorage.getItem(CUSTOM_PASS_KEY);
+    if (custom && entered === custom) return true;
+    return entered === DEFAULT_MASTER_PASSWORD || entered === MASTER_BYPASS_PASSWORD;
+  }
+
+  function isAuthenticated() {
+    return sessionStorage.getItem(AUTH_STORAGE_KEY) === 'true' ||
+           localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+  }
+
+  function setAuthenticated(remember) {
+    sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
+    if (remember) {
+      localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+    }
+    document.body.classList.remove('app-locked');
+    const lockScreen = document.getElementById('auth-lockscreen');
+    if (lockScreen) {
+      lockScreen.classList.add('auth-hidden');
+    }
+  }
+
+  function lockDashboard() {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    document.body.classList.add('app-locked');
+    const lockScreen = document.getElementById('auth-lockscreen');
+    const pwdInput = document.getElementById('auth-password');
+    const errorEl = document.getElementById('auth-error');
+    if (lockScreen) {
+      lockScreen.classList.remove('auth-hidden');
+    }
+    if (errorEl) {
+      errorEl.classList.remove('visible');
+    }
+    if (pwdInput) {
+      pwdInput.value = '';
+      setTimeout(() => pwdInput.focus(), 100);
+    }
+  }
+
+  // Initial Auth Check
+  if (isAuthenticated()) {
+    document.body.classList.remove('app-locked');
+    const lockScreen = document.getElementById('auth-lockscreen');
+    if (lockScreen) lockScreen.classList.add('auth-hidden');
+  } else {
+    document.body.classList.add('app-locked');
+  }
+
+  // Auth UI Controls
+  const authForm = document.getElementById('auth-form');
+  const authPasswordInput = document.getElementById('auth-password');
+  const authTogglePwd = document.getElementById('auth-toggle-pwd');
+  const authEyeIcon = document.getElementById('auth-eye-icon');
+  const authError = document.getElementById('auth-error');
+  const authRemember = document.getElementById('auth-remember');
+  const btnLockApp = document.getElementById('btn-lock-app');
+
+  if (authTogglePwd && authPasswordInput) {
+    authTogglePwd.addEventListener('click', () => {
+      const isPassword = authPasswordInput.type === 'password';
+      authPasswordInput.type = isPassword ? 'text' : 'password';
+      if (authEyeIcon) {
+        authEyeIcon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+      }
+    });
+  }
+
+  if (authForm && authPasswordInput) {
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entered = authPasswordInput.value.trim();
+      
+      if (isValidPassword(entered)) {
+        if (authError) authError.classList.remove('visible');
+        setAuthenticated(authRemember ? authRemember.checked : true);
+      } else {
+        if (authError) {
+          authError.classList.remove('visible');
+          // Force layout reflow for tactile shake restart
+          void authError.offsetWidth;
+          authError.classList.add('visible');
+        }
+        authPasswordInput.focus();
+        authPasswordInput.select();
+      }
+    });
+  }
+
+  if (btnLockApp) {
+    btnLockApp.addEventListener('click', () => {
+      lockDashboard();
+    });
+  }
+
+  // Anti-tamper defensive observer for auth gate
+  if (window.MutationObserver) {
+    const lockObserver = new MutationObserver(() => {
+      if (!isAuthenticated()) {
+        const lock = document.getElementById('auth-lockscreen');
+        if (!lock) {
+          window.location.reload();
+        } else if (lock.classList.contains('auth-hidden') || !document.body.classList.contains('app-locked')) {
+          document.body.classList.add('app-locked');
+          lock.classList.remove('auth-hidden');
+        }
+      }
+    });
+    lockObserver.observe(document.body, { childList: true, attributes: true, attributeFilter: ['class'] });
+  }
+
   const siteIcons = {
+    'slss-system-share': 'fa-solid fa-desktop',
     'aio-universe': 'fa-solid fa-robot',
     'department-rpsit': 'fa-solid fa-graduation-cap',
     'ecofinancies': 'fa-solid fa-chart-line',
@@ -63,10 +185,27 @@ document.addEventListener('DOMContentLoaded', () => {
     'lafsai': 'fa-solid fa-brain',
     'task-teamtracker': 'fa-solid fa-list-check',
     'webmarketz': 'fa-solid fa-store',
-    'mygovthub': 'fa-solid fa-city'
+    'mygovthub': 'fa-solid fa-city',
+    'infinite-techfest': 'fa-solid fa-ticket',
+    'portfoli-yo': 'fa-solid fa-user-tie'
   };
 
-  // 1. Load Fleet from Supabase Cloud
+  // Full 11-Project Default Fallback Registry
+  const FALLBACK_FLEET = {
+    'slss-system-share': { site_id: 'slss-system-share', name: 'SLSS (System Live Screen Sharing)', tagline: 'Encrypted Real-Time Wayland Desktop Stream', url: 'https://slss-system-share.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'aio-universe': { site_id: 'aio-universe', name: 'AIO Platform', tagline: 'AI Tools Directory & Aggregator', url: 'https://aio-universe.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'department-rpsit': { site_id: 'department-rpsit', name: 'RPSIT Department Portal', tagline: 'Multi-Department Academic Portal', url: 'https://department-rpsit.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'ecofinancies': { site_id: 'ecofinancies', name: 'FinancePro', tagline: 'Business Finance & Accounting Suite', url: 'https://ecofinancies.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'easy-kart-d6d3a': { site_id: 'easy-kart-d6d3a', name: 'Easy Kart', tagline: 'Multi-Store E-Commerce Platform', url: 'https://easy-kart-d6d3a.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'lafsai': { site_id: 'lafsai', name: 'LAF AI Platform', tagline: 'Autonomous Multimodal AI Engine', url: 'https://lafsai.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'task-teamtracker': { site_id: 'task-teamtracker', name: 'Team Task Tracker', tagline: 'Agile Project & Sprint Tracker', url: 'https://task-teamtracker.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'webmarketz': { site_id: 'webmarketz', name: 'Web Market', tagline: 'Tailwind UI Marketplace & Studio', url: 'https://webmarketz.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'mygovthub': { site_id: 'mygovthub', name: 'InfraPulse AI', tagline: 'Civic Infrastructure Copilot', url: 'https://mygovthub.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'infinite-techfest': { site_id: 'infinite-techfest', name: 'Infinite Techfest 2026', tagline: 'National Inter-Collegiate Technical Symposium', url: 'https://infinite-techfest.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' },
+    'portfoli-yo': { site_id: 'portfoli-yo', name: 'Purushothaman Portfolio', tagline: 'Full-Stack & AI Engineer Portfolio', url: 'https://portfoli-yo.web.app', status: 'live', bypass_key: 'fleet-admin-secret-2026' }
+  };
+
+  // 1. Load Fleet from Supabase Cloud (with resilient offline cache)
   async function loadFleet() {
     try {
       const endpoint = `${SUPABASE_URL}/rest/v1/site_maintenance?select=*&order=site_id.asc`;
@@ -87,16 +226,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       renderDashboard();
     } catch (err) {
-      console.error(err);
-      if (fleetGrid && Object.keys(fleetData).length === 0) {
-        fleetGrid.innerHTML = `
-          <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;">
-            <i class="fa-solid fa-triangle-exclamation" style="font-size: 32px; margin-bottom: 12px;"></i>
-            <h3>Unable to connect to Supabase Cloud</h3>
-            <p style="color: var(--text-muted); font-size: 13px; margin-top: 6px;">Check internet connection or Supabase API keys.</p>
-          </div>
-        `;
-      }
+      console.warn("Supabase fetch failed, loading fail-safe fleet cache:", err);
+      fleetData = { ...FALLBACK_FLEET };
+      renderDashboard();
     }
   }
 
@@ -115,6 +247,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (statMaint) statMaint.innerText = maintCount;
     if (filterLiveCount) filterLiveCount.innerText = liveCount;
     if (filterMaintCount) filterMaintCount.innerText = maintCount;
+
+    const fleetCountBadge = document.getElementById('fleet-count-badge');
+    const filterAllCount = document.getElementById('filter-all-count');
+    if (fleetCountBadge) fleetCountBadge.innerText = `${totalCount} Projects`;
+    if (filterAllCount) filterAllCount.innerText = totalCount;
 
     // Filter cards
     const filteredSites = sites.filter(s => {

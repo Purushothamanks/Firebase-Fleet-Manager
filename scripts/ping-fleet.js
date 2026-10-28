@@ -8,6 +8,7 @@
 const https = require('https');
 
 const FLEET = [
+  { id: 'slss-system-share', name: 'SLSS Live Stream', url: 'https://slss-system-share.web.app' },
   { id: 'aio-universe', name: 'AIO Platform', url: 'https://aio-universe.web.app' },
   { id: 'department-rpsit', name: 'RPSIT Portal', url: 'https://department-rpsit.web.app' },
   { id: 'ecofinancies', name: 'FinancePro', url: 'https://ecofinancies.web.app' },
@@ -15,7 +16,9 @@ const FLEET = [
   { id: 'lafsai', name: 'LAF AI Platform', url: 'https://lafsai.web.app' },
   { id: 'task-teamtracker', name: 'Team Task Tracker', url: 'https://task-teamtracker.web.app' },
   { id: 'webmarketz', name: 'Web Market', url: 'https://webmarketz.web.app' },
-  { id: 'mygovthub', name: 'InfraPulse AI', url: 'https://mygovthub.web.app' }
+  { id: 'mygovthub', name: 'InfraPulse AI', url: 'https://mygovthub.web.app' },
+  { id: 'infinite-techfest', name: 'Infinite Techfest', url: 'https://infinite-techfest.web.app' },
+  { id: 'portfoli-yo', name: 'Purushothaman Portfolio', url: 'https://portfoli-yo.web.app' }
 ];
 
 function pingUrl(target) {
