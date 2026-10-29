@@ -57,10 +57,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============================================================================
   // Security Authentication Gate (Master Password Protection)
+  // Always prompts for password whenever entering or reloading the app.
   // ============================================================================
   const DEFAULT_MASTER_PASSWORD = '...';
   const MASTER_BYPASS_PASSWORD = 'fleet-admin-secret-2026';
-  const AUTH_STORAGE_KEY = 'fleet_manager_authenticated_v2';
+  let isAppUnlocked = false;
+
+  // Clear any legacy persistent storage flags so the lockscreen always prompts
+  try {
+    localStorage.removeItem('fleet_manager_authenticated');
+    localStorage.removeItem('fleet_manager_authenticated_v2');
+    sessionStorage.removeItem('fleet_manager_authenticated');
+    sessionStorage.removeItem('fleet_manager_authenticated_v2');
+  } catch (_) {}
 
   function isValidPassword(entered) {
     if (!entered) return false;
@@ -73,17 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function isAuthenticated() {
-    return sessionStorage.getItem(AUTH_STORAGE_KEY) === 'true' ||
-           localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+    return isAppUnlocked;
   }
 
-  function setAuthenticated(remember) {
-    sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
-    if (remember) {
-      localStorage.setItem(AUTH_STORAGE_KEY, 'true');
-    } else {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
-    }
+  function setAuthenticated() {
+    isAppUnlocked = true;
     document.body.classList.remove('app-locked');
     const lockScreen = document.getElementById('auth-lockscreen');
     if (lockScreen) {
@@ -95,8 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function lockDashboard() {
-    sessionStorage.removeItem(AUTH_STORAGE_KEY);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+    isAppUnlocked = false;
     document.body.classList.add('app-locked');
     const lockScreen = document.getElementById('auth-lockscreen');
     const pwdInput = document.getElementById('auth-password');
@@ -113,13 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial Auth Check
-  if (isAuthenticated()) {
-    document.body.classList.remove('app-locked');
-    const lockScreen = document.getElementById('auth-lockscreen');
-    if (lockScreen) lockScreen.classList.add('auth-hidden');
-  } else {
-    document.body.classList.add('app-locked');
+  // Always enforce lock upon entering the app
+  document.body.classList.add('app-locked');
+  const lockScreenEl = document.getElementById('auth-lockscreen');
+  if (lockScreenEl) {
+    lockScreenEl.classList.remove('auth-hidden');
   }
 
   // Auth UI Controls
@@ -128,8 +128,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const authTogglePwd = document.getElementById('auth-toggle-pwd');
   const authEyeIcon = document.getElementById('auth-eye-icon');
   const authError = document.getElementById('auth-error');
-  const authRemember = document.getElementById('auth-remember');
   const btnLockApp = document.getElementById('btn-lock-app');
+
+  if (authPasswordInput) {
+    setTimeout(() => authPasswordInput.focus(), 120);
+    authPasswordInput.addEventListener('input', () => {
+      if (authError && authError.classList.contains('visible')) {
+        authError.classList.remove('visible');
+      }
+    });
+  }
 
   if (authTogglePwd && authPasswordInput) {
     authTogglePwd.addEventListener('click', () => {
@@ -141,14 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (authPasswordInput) {
-    authPasswordInput.addEventListener('input', () => {
-      if (authError && authError.classList.contains('visible')) {
-        authError.classList.remove('visible');
-      }
-    });
-  }
-
   if (authForm && authPasswordInput) {
     authForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (isValidPassword(entered)) {
         if (authError) authError.classList.remove('visible');
-        setAuthenticated(authRemember ? authRemember.checked : false);
+        setAuthenticated();
       } else {
         if (authError) {
           authError.classList.remove('visible');
