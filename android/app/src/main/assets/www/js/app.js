@@ -60,13 +60,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================================================================
   const DEFAULT_MASTER_PASSWORD = '...';
   const MASTER_BYPASS_PASSWORD = 'fleet-admin-secret-2026';
-  const AUTH_STORAGE_KEY = 'fleet_manager_authenticated';
-  const CUSTOM_PASS_KEY = 'fleet_custom_password';
+  const AUTH_STORAGE_KEY = 'fleet_manager_authenticated_v2';
 
   function isValidPassword(entered) {
-    const custom = localStorage.getItem(CUSTOM_PASS_KEY);
-    if (custom && entered === custom) return true;
-    return entered === DEFAULT_MASTER_PASSWORD || entered === MASTER_BYPASS_PASSWORD;
+    if (!entered) return false;
+    const clean = entered.trim();
+    // Support standard 3 dots '...' and mobile keyboard ellipsis '\u2026'
+    return clean === '...' || 
+           clean === '\u2026' || 
+           clean === DEFAULT_MASTER_PASSWORD || 
+           clean === MASTER_BYPASS_PASSWORD;
   }
 
   function isAuthenticated() {
@@ -78,11 +81,16 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.setItem(AUTH_STORAGE_KEY, 'true');
     if (remember) {
       localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+    } else {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
     }
     document.body.classList.remove('app-locked');
     const lockScreen = document.getElementById('auth-lockscreen');
     if (lockScreen) {
       lockScreen.classList.add('auth-hidden');
+    }
+    if (typeof loadFleet === 'function') {
+      loadFleet();
     }
   }
 
@@ -133,6 +141,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (authPasswordInput) {
+    authPasswordInput.addEventListener('input', () => {
+      if (authError && authError.classList.contains('visible')) {
+        authError.classList.remove('visible');
+      }
+    });
+  }
+
   if (authForm && authPasswordInput) {
     authForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -140,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (isValidPassword(entered)) {
         if (authError) authError.classList.remove('visible');
-        setAuthenticated(authRemember ? authRemember.checked : true);
+        setAuthenticated(authRemember ? authRemember.checked : false);
       } else {
         if (authError) {
           authError.classList.remove('visible');
